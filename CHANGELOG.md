@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.0] - 2026-07-06
+
+### Thêm
+- **Quét đa user (multi-user)**: khi chạy với quyền Administrator trên máy có nhiều user, script hỏi có quét cả hồ sơ của họ không. Đồng ý thì mở rộng: thư mục mồ côi trong AppData (Roaming/Local/LocalLow/Programs) của từng user, shortcut Start Menu + Desktop, thư mục Startup, và Run/RunOnce key qua HKEY_USERS cho user đang đăng nhập. Mục của user khác được gắn nhãn [tên-user] trong danh sách chọn và tự nhận diện là cần Administrator khi dọn.
+
 ## [1.1.4] - 2026-07-06
 
 ### Sửa

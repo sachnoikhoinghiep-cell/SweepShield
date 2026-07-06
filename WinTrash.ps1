@@ -49,7 +49,7 @@ $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
-$script:WinTrashVersion = [version]'1.1.4'
+$script:WinTrashVersion = [version]'1.2.0'
 $script:UpdateRawBase = 'https://raw.githubusercontent.com/hasoftware/WinTrash/main'
 
 # ════════════════════════════ I18N ════════════════════════════
@@ -99,6 +99,8 @@ $i18n = @{
         ElevateLaunched = 'Đã mở cửa sổ Administrator - phần dọn tiếp tục ở đó (quét lại nhanh rồi tự dọn đúng các mục bạn đã chọn).'
         SkippedAdmin = 'Đã bỏ qua {0} mục cần Administrator.'
         ResumeNothing = 'Không còn mục nào khớp danh sách đã chọn (có thể đã được dọn).'
+        MultiUserAsk = 'Máy có {0} user khác ({1}). Quét cả hồ sơ của họ? [y/N]'
+        MultiUserOn  = 'Sẽ quét thêm hồ sơ của {0} user khác (AppData, Startup, Run-key, Shortcuts).'
         PickerTitle = 'CHỌN CÁC MỤC MUỐN DỌN (chưa xóa gì cho tới khi bạn xác nhận)'
         NothingFound= 'Không phát hiện mục nào có thể dọn. Máy sạch!'
         NothingSel  = 'Không chọn mục nào - không làm gì cả.'
@@ -162,6 +164,8 @@ $i18n = @{
         ElevateLaunched = 'Administrator window opened - cleanup continues there (quick re-scan, then cleans exactly what you picked).'
         SkippedAdmin = 'Skipped {0} items that require Administrator.'
         ResumeNothing = 'No items match the saved selection (they may already be cleaned).'
+        MultiUserAsk = 'This machine has {0} other user(s) ({1}). Scan their profiles too? [y/N]'
+        MultiUserOn  = 'Will also scan {0} other user profile(s) (AppData, Startup, Run keys, Shortcuts).'
         PickerTitle = 'SELECT ITEMS TO CLEAN (nothing is deleted until you confirm)'
         NothingFound= 'Nothing cleanable found. Your machine is clean!'
         NothingSel  = 'Nothing selected - no action taken.'
@@ -225,6 +229,8 @@ $i18n = @{
         ElevateLaunched = '已打开管理员窗口 - 清理将在那里继续（快速重扫后清理您选择的项目）。'
         SkippedAdmin = '已跳过 {0} 个需要管理员权限的项目。'
         ResumeNothing = '没有与已保存选择匹配的项目（可能已被清理）。'
+        MultiUserAsk = '本机有 {0} 个其他用户（{1}）。也扫描他们的配置文件？[y/N]'
+        MultiUserOn  = '将同时扫描 {0} 个其他用户的配置文件（AppData、启动项、Run 键、快捷方式）。'
         PickerTitle = '选择要清理的项目（确认前不会删除任何内容）'
         NothingFound= '未发现可清理的项目。您的电脑很干净！'
         NothingSel  = '未选择任何项目 - 不执行任何操作。'
@@ -288,6 +294,8 @@ $i18n = @{
         ElevateLaunched = 'Окно администратора открыто - очистка продолжится там (пересканирование, затем очистка выбранного).'
         SkippedAdmin = 'Пропущено пунктов, требующих администратора: {0}.'
         ResumeNothing = 'Нет пунктов, соответствующих сохранённому выбору (возможно, уже очищены).'
+        MultiUserAsk = 'На машине есть другие пользователи: {0} ({1}). Сканировать и их профили? [y/N]'
+        MultiUserOn  = 'Будут просканированы профили других пользователей: {0} (AppData, автозагрузка, Run-ключи, ярлыки).'
         PickerTitle = 'ВЫБЕРИТЕ ПУНКТЫ ДЛЯ ОЧИСТКИ (ничего не удаляется до подтверждения)'
         NothingFound= 'Ничего для очистки не найдено. Ваш компьютер чист!'
         NothingSel  = 'Ничего не выбрано - действий не выполнено.'
@@ -883,6 +891,44 @@ function Test-NameMatchesInstalledApp {
 #             Service | Task | Firewall | DefenderPath | DefenderProcess
 
 $script:findings = [System.Collections.Generic.List[object]]::new()
+$script:otherUserProfiles = @()   # hồ sơ user khác được duyệt quét (multi-user, cần admin)
+
+function Get-OtherUserProfiles {
+    # Liệt kê hồ sơ user KHÁC trên máy (trừ user hiện tại, hồ sơ hệ thống/Default)
+    $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    $result = [System.Collections.Generic.List[object]]::new()
+    foreach ($p in (Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue)) {
+        if ($p.Special) { continue }
+        if ($p.SID -eq $currentSid) { continue }
+        if (-not $p.LocalPath -or -not (Test-Path -LiteralPath $p.LocalPath)) { continue }
+        $result.Add([PSCustomObject]@{
+            Sid    = $p.SID
+            Path   = $p.LocalPath
+            Name   = (Split-Path $p.LocalPath -Leaf)
+            Loaded = [bool]$p.Loaded   # hive registry đang nạp (user đang đăng nhập)
+        })
+    }
+    return $result.ToArray()
+}
+
+function Request-MultiUserScan {
+    # Chạy admin + máy có user khác -> hỏi có quét cả hồ sơ của họ không.
+    # -Auto: không hỏi, bật luôn (dùng cho clean-resume để khớp danh sách đã chọn)
+    param([hashtable]$L, [switch]$Auto)
+    $script:otherUserProfiles = @()
+    if (-not (Test-IsAdmin)) { return }
+    $others = @(Get-OtherUserProfiles)
+    if ($others.Count -eq 0) { return }
+    if ($Auto) { $script:otherUserProfiles = $others; return }
+    if (-not (Test-Interactive)) { return }
+    $names = ($others | ForEach-Object { $_.Name }) -join ', '
+    $answer = Read-Host ($L.MultiUserAsk -f $others.Count, $names)
+    if ($answer -match '^[yY]') {
+        $script:otherUserProfiles = $others
+        Write-C ($L.MultiUserOn -f $others.Count) -Color Cyan
+        Write-Host ''
+    }
+}
 
 function Get-FindingId {
     # ID ổn định của một phát hiện - dùng cho ignore list và so sánh giữa các lần quét
@@ -1018,13 +1064,19 @@ function Invoke-ScanFolders {
         'AMD', 'NVIDIA', 'NVIDIA Corporation', 'Intel', 'InstallShield'
     )
     $fp = Get-AppFingerprint
-    $scanRoots = @(
-        @{ Label = 'Roaming';       Path = $env:APPDATA },
-        @{ Label = 'Local';         Path = $env:LOCALAPPDATA },
-        @{ Label = 'LocalLow';      Path = (Join-Path (Split-Path $env:LOCALAPPDATA -Parent) 'LocalLow') },
-        @{ Label = 'LocalPrograms'; Path = (Join-Path $env:LOCALAPPDATA 'Programs') },
-        @{ Label = 'ProgramData';   Path = $env:ProgramData }
-    )
+    $scanRoots = [System.Collections.Generic.List[object]]::new()
+    $scanRoots.Add(@{ Label = 'Roaming';       Path = $env:APPDATA })
+    $scanRoots.Add(@{ Label = 'Local';         Path = $env:LOCALAPPDATA })
+    $scanRoots.Add(@{ Label = 'LocalLow';      Path = (Join-Path (Split-Path $env:LOCALAPPDATA -Parent) 'LocalLow') })
+    $scanRoots.Add(@{ Label = 'LocalPrograms'; Path = (Join-Path $env:LOCALAPPDATA 'Programs') })
+    $scanRoots.Add(@{ Label = 'ProgramData';   Path = $env:ProgramData })
+    # Multi-user (admin đã duyệt): quét thêm AppData của từng user khác
+    foreach ($up in $script:otherUserProfiles) {
+        $scanRoots.Add(@{ Label = "[$($up.Name)] Roaming";       Path = (Join-Path $up.Path 'AppData\Roaming') })
+        $scanRoots.Add(@{ Label = "[$($up.Name)] Local";         Path = (Join-Path $up.Path 'AppData\Local') })
+        $scanRoots.Add(@{ Label = "[$($up.Name)] LocalLow";      Path = (Join-Path $up.Path 'AppData\LocalLow') })
+        $scanRoots.Add(@{ Label = "[$($up.Name)] LocalPrograms"; Path = (Join-Path $up.Path 'AppData\Local\Programs') })
+    }
     $staleCutoff = (Get-Date).AddDays(-$StaleDays)
     foreach ($rootInfo in $scanRoots) {
         if (-not (Test-Path -LiteralPath $rootInfo.Path)) { continue }
@@ -1037,7 +1089,7 @@ function Invoke-ScanFolders {
                 $script:scanStatus.Text = ('{0} › {1} ({2}/{3}): {4}' -f $script:scanStatus.Prefix, $rootInfo.Label, $fi, $folders.Count, $folder.Name)
             }
             if ($systemFolders -contains $folder.Name) { continue }
-            if ($rootInfo.Label -eq 'Local' -and $folder.Name -eq 'Programs') { continue }
+            if ($rootInfo.Label.EndsWith('Local') -and $folder.Name -eq 'Programs') { continue }
 
             $folderLower = $folder.FullName.TrimEnd('\').ToLowerInvariant()
             $matched = $false
@@ -1102,8 +1154,33 @@ function Invoke-ScanStartup {
             }
         }
     }
+    # Multi-user: Run/RunOnce của các user KHÁC đang đăng nhập (hive nạp trong HKEY_USERS)
+    foreach ($up in $script:otherUserProfiles) {
+        if (-not $up.Loaded) { continue }
+        foreach ($suffix in 'Run', 'RunOnce') {
+            $hkuKey = "Registry::HKEY_USERS\$($up.Sid)\SOFTWARE\Microsoft\Windows\CurrentVersion\$suffix"
+            if (-not (Test-Path $hkuKey)) { continue }
+            $props = Get-ItemProperty -Path $hkuKey -ErrorAction SilentlyContinue
+            foreach ($prop in $props.PSObject.Properties) {
+                if ($prop.Name -in 'PSPath', 'PSParentPath', 'PSChildName', 'PSDrive', 'PSProvider') { continue }
+                $exe = Resolve-CommandPath -CommandLine ([string]$prop.Value)
+                if ($exe -and (Test-ExeMissing -ExePath $exe)) {
+                    Add-Finding -Category 'Startup' -Name ("[{0}] {1}" -f $up.Name, $prop.Name) -Target $exe `
+                        -Detail "Run-key của user $($up.Name)" `
+                        -RemoveKind 'RegValue' -RemoveData @{ PSPath = $hkuKey; Value = $prop.Name }
+                }
+            }
+        }
+    }
+
     $shell = New-Object -ComObject WScript.Shell
-    foreach ($dir in @([Environment]::GetFolderPath('Startup'), [Environment]::GetFolderPath('CommonStartup'))) {
+    $startupDirs = [System.Collections.Generic.List[string]]::new()
+    $startupDirs.Add([Environment]::GetFolderPath('Startup'))
+    $startupDirs.Add([Environment]::GetFolderPath('CommonStartup'))
+    foreach ($up in $script:otherUserProfiles) {
+        $startupDirs.Add((Join-Path $up.Path 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'))
+    }
+    foreach ($dir in $startupDirs) {
         if (-not (Test-Path -LiteralPath $dir)) { continue }
         foreach ($item in (Get-ChildItem -LiteralPath $dir -File -ErrorAction SilentlyContinue)) {
             if ($item.Extension -ne '.lnk') { continue }
@@ -1189,12 +1266,16 @@ function Invoke-ScanAppPaths {
 
 function Invoke-ScanShortcuts {
     $shell = New-Object -ComObject WScript.Shell
-    $dirs = @(
-        [Environment]::GetFolderPath('StartMenu'),
-        [Environment]::GetFolderPath('CommonStartMenu'),
-        [Environment]::GetFolderPath('Desktop'),
-        [Environment]::GetFolderPath('CommonDesktopDirectory')
-    )
+    $dirs = [System.Collections.Generic.List[string]]::new()
+    $dirs.Add([Environment]::GetFolderPath('StartMenu'))
+    $dirs.Add([Environment]::GetFolderPath('CommonStartMenu'))
+    $dirs.Add([Environment]::GetFolderPath('Desktop'))
+    $dirs.Add([Environment]::GetFolderPath('CommonDesktopDirectory'))
+    # Multi-user: Start Menu + Desktop của các user khác
+    foreach ($up in $script:otherUserProfiles) {
+        $dirs.Add((Join-Path $up.Path 'AppData\Roaming\Microsoft\Windows\Start Menu'))
+        $dirs.Add((Join-Path $up.Path 'Desktop'))
+    }
     foreach ($dir in ($dirs | Select-Object -Unique)) {
         if (-not (Test-Path -LiteralPath $dir)) { continue }
         foreach ($lnkFile in (Get-ChildItem -LiteralPath $dir -Recurse -Filter '*.lnk' -File -ErrorAction SilentlyContinue)) {
@@ -1473,12 +1554,20 @@ function Test-FindingNeedsAdmin {
         'DefenderProcess' { return $true }
         'Task'            { return ($Finding.RemoveData.TaskPath -eq '\') }   # task gốc thường của hệ thống
         'PathEntry'       { return ($Finding.RemoveData.Scope -eq 'Machine') }
-        'RegValue'        { return ([string]$Finding.RemoveData.PSPath -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE)') }
-        'RegKey'          { return ([string]$Finding.RemoveData.PSPath -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE)') }
-        'RegKeyMulti'     { return [bool](@($Finding.RemoveData.Paths) | Where-Object { $_ -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE)' }) }
+        'RegValue'        { return ([string]$Finding.RemoveData.PSPath -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE|Registry::HKEY_USERS)') }
+        'RegKey'          { return ([string]$Finding.RemoveData.PSPath -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE|Registry::HKEY_USERS)') }
+        'RegKeyMulti'     { return [bool](@($Finding.RemoveData.Paths) | Where-Object { $_ -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE|Registry::HKEY_USERS)' }) }
         'ProtocolKey'     { return (Test-Path ("HKLM:\Software\Classes\{0}" -f $Finding.RemoveData.Name)) }
-        'RecycleDir'      { return ([string]$Finding.RemoveData.Path -match '^[A-Za-z]:\\(ProgramData|Program Files)') }
-        'RecycleFile'     { return ([string]$Finding.RemoveData.Path -match '^[A-Za-z]:\\(ProgramData|Program Files)') }
+        'RecycleDir'      {
+            $p = [string]$Finding.RemoveData.Path
+            return ($p -match '^[A-Za-z]:\\(ProgramData|Program Files)') -or
+                   ($p -match '^[A-Za-z]:\\Users\\' -and -not $p.StartsWith($env:USERPROFILE, [System.StringComparison]::OrdinalIgnoreCase))
+        }
+        'RecycleFile'     {
+            $p = [string]$Finding.RemoveData.Path
+            return ($p -match '^[A-Za-z]:\\(ProgramData|Program Files)') -or
+                   ($p -match '^[A-Za-z]:\\Users\\' -and -not $p.StartsWith($env:USERPROFILE, [System.StringComparison]::OrdinalIgnoreCase))
+        }
         default           { return $false }
     }
 }
@@ -1778,6 +1867,7 @@ function Export-HtmlReport {
 
 function Invoke-FlowScan {
     param([hashtable]$L)
+    Request-MultiUserScan -L $L
     Invoke-AllScans -L $L
     Show-ScanSummary -L $L
     Save-ScanHistoryAndDiff -L $L
@@ -1795,6 +1885,7 @@ function Invoke-FlowClean {
         $spinnerHandle = Start-ScanSpinner -Text 'DevTrash...'
         try { Invoke-ScanDevTrash } finally { Stop-ScanSpinner -Handle $spinnerHandle }
     } else {
+        Request-MultiUserScan -L $L
         Invoke-AllScans -L $L
         Show-ScanSummary -L $L
     }
@@ -1866,6 +1957,7 @@ function Invoke-FlowCleanResume {
     if (-not (Test-Path -LiteralPath $pendingFile)) { Write-Host $L.ResumeNothing -ForegroundColor Yellow; return }
     $ids = @(Get-Content -LiteralPath $pendingFile -Raw | ConvertFrom-Json)
     Remove-Item -LiteralPath $pendingFile -Force -ErrorAction SilentlyContinue
+    Request-MultiUserScan -L $L -Auto   # bao phủ cả mục của user khác trong danh sách đã chọn
     Invoke-AllScans -L $L
     if (@($ids | Where-Object { $_ -like 'DevTrash|*' }).Count -gt 0) {
         $spinnerHandle = Start-ScanSpinner -Text 'DevTrash...'
