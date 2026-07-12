@@ -1903,10 +1903,12 @@ function Remove-SelectedFindings {
                     $deletedAny = $false
                     $protoErrors = [System.Collections.Generic.List[string]]::new()
                     foreach ($hivePair in @(
-                        @{ PS = "HKCU:\Software\Classes\$protoName"; Reg = "HKEY_CURRENT_USER\Software\Classes\$protoName" },
-                        @{ PS = "HKLM:\Software\Classes\$protoName"; Reg = "HKEY_LOCAL_MACHINE\Software\Classes\$protoName" })) {
+                        @{ PS = "HKCU:\Software\Classes\$protoName"; Reg = "HKEY_CURRENT_USER\Software\Classes\$protoName"; Tag = 'HKCU' },
+                        @{ PS = "HKLM:\Software\Classes\$protoName"; Reg = "HKEY_LOCAL_MACHINE\Software\Classes\$protoName"; Tag = 'HKLM' })) {
                         if (-not (Test-Path -Path $hivePair.PS)) { continue }
-                        & reg.exe export $hivePair.Reg (Join-Path $backupDir "protocol_$idx`_$safeProto.reg") /y | Out-Null
+                        # Tên file backup phải mang tên hive: key tồn tại ở CẢ HAI hive mà export
+                        # trùng tên thì bản HKLM đè bản HKCU (/y) -> restore mất một hive
+                        & reg.exe export $hivePair.Reg (Join-Path $backupDir "protocol_$idx`_$($hivePair.Tag)_$safeProto.reg") /y | Out-Null
                         try {
                             Remove-Item -Path $hivePair.PS -Recurse -Force -ErrorAction Stop
                             $deletedAny = $true
@@ -1956,10 +1958,15 @@ function Remove-SelectedFindings {
                     # xóa mọi view còn tồn tại; view đã biến mất (bản chiếu) thì bỏ qua êm
                     $safe = ($f.Name -replace '[^\w\.-]', '_')
                     $multiErrors = [System.Collections.Generic.List[string]]::new()
+                    $viewIdx = 0
                     foreach ($regPath in @($f.RemoveData.Paths)) {
+                        $viewIdx++
                         if (-not (Test-Path -Path $regPath)) { continue }
                         $regExe = ConvertTo-RegExePath -PSPath $regPath
-                        & reg.exe export $regExe (Join-Path $backupDir "regkey_$idx`_$safe.reg") 2>$null /y | Out-Null
+                        # Mỗi view một file backup riêng: key sống ở cả 64-bit lẫn WOW6432Node mà
+                        # export trùng tên thì bản sau đè bản trước (/y) -> restore mất một view
+                        $viewTag = if ($regPath -match 'WOW6432Node') { 'wow64' } else { "v$viewIdx" }
+                        & reg.exe export $regExe (Join-Path $backupDir "regkey_$idx`_$viewTag`_$safe.reg") 2>$null /y | Out-Null
                         try { Remove-Item -Path $regPath -Recurse -Force -ErrorAction Stop }
                         catch { $multiErrors.Add($_.Exception.Message) }
                     }
@@ -1972,12 +1979,14 @@ function Remove-SelectedFindings {
                     if ($LASTEXITCODE -ne 0) { throw "sc delete mã lỗi $LASTEXITCODE (cần admin?)" }
                 }
                 'Task' {
+                    # Tên file kèm $idx: hai task trùng tên ở TaskPath khác nhau mà export trùng
+                    # tên file thì XML sau đè XML trước -> restore đăng ký nhầm cùng một task
                     $safe = ($f.RemoveData.TaskName -replace '[^\w\.-]', '_')
                     Export-ScheduledTask -TaskPath $f.RemoveData.TaskPath -TaskName $f.RemoveData.TaskName -ErrorAction SilentlyContinue |
-                        Set-Content -LiteralPath (Join-Path $backupDir "task_$safe.xml") -Encoding Unicode
+                        Set-Content -LiteralPath (Join-Path $backupDir "task_$idx`_$safe.xml") -Encoding Unicode
                     # Manifest để restore đúng TaskPath/TaskName gốc
                     Add-Content -LiteralPath (Join-Path $backupDir 'tasks_manifest.txt') `
-                        -Value ("task_$safe.xml|{0}|{1}" -f $f.RemoveData.TaskPath, $f.RemoveData.TaskName) -Encoding UTF8
+                        -Value ("task_$idx`_$safe.xml|{0}|{1}" -f $f.RemoveData.TaskPath, $f.RemoveData.TaskName) -Encoding UTF8
                     Unregister-ScheduledTask -TaskPath $f.RemoveData.TaskPath -TaskName $f.RemoveData.TaskName -Confirm:$false -ErrorAction SilentlyContinue
                     if (Get-ScheduledTask -TaskPath $f.RemoveData.TaskPath -TaskName $f.RemoveData.TaskName -ErrorAction SilentlyContinue) {
                         throw 'Task vẫn còn (cần admin?)'
