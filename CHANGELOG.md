@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1] - 2026-07-12
+
+### Sửa
+- **Backup .reg/.xml bị ghi đè khi một finding xóa nhiều hive/view/task trùng tên**: ba chỗ export backup dùng tên file không phân biệt nguồn nên bản export sau đè bản trước (`/y`), restore mất dữ liệu. `ProtocolKey` (key tồn tại ở cả HKCU lẫn HKLM `Software\Classes`) giờ kèm tag hive vào tên file; `RegKeyMulti` (key sống ở cả view 64-bit lẫn WOW6432Node) kèm tag view (`wow64`/`v<n>`); `Task` (hai task trùng tên ở TaskPath khác nhau) kèm chỉ số finding vào tên `task_*.xml`, manifest vẫn trỏ đúng file. Đã kiểm chứng thực nghiệm: 2 key cùng finding cho ra 2 file backup riêng, `reg import` khôi phục đủ cả hai.
+
+### Khác
+- Cập nhật thông tin bản quyền trong `LICENSE`.
+
 ## [1.3.0] - 2026-07-09
 
 ### Thêm
