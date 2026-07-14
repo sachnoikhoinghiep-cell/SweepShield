@@ -1,21 +1,21 @@
 <#
 .SYNOPSIS
-    Builds the Microsoft Store (MSIX) package for WinTrash.
+    Builds the Microsoft Store (MSIX) package for SweepShield.
 
 .DESCRIPTION
     Steps:
-      1. Compiles WinTrashLauncher.exe from WinTrashLauncher.cs (csc.exe ships with
+      1. Compiles SweepShieldLauncher.exe from SweepShieldLauncher.cs (csc.exe ships with
          the .NET Framework on every Windows box - no SDK install needed).
       2. Generates placeholder logo PNGs with System.Drawing if store\Assets is empty
          (replace them with real artwork before submitting!).
-      3. Stages the package layout (launcher + WinTrash.ps1 + manifest + assets)
+      3. Stages the package layout (launcher + SweepShield.ps1 + manifest + assets)
          and stamps the Identity/Publisher/Version placeholders in AppxManifest.xml.
       4. Packs with makeappx.exe (Windows 10/11 SDK) if available.
       5. Signs with signtool.exe if -PfxPath is given (only needed for local
          sideload testing - Store submissions are signed by Microsoft).
 
 .EXAMPLE
-    .\build-msix.ps1 -IdentityName '12345Publisher.WinTrash' -Publisher 'CN=xxxx-...' -PublisherDisplay 'My Studio'
+    .\build-msix.ps1 -IdentityName '12345Publisher.SweepShield' -Publisher 'CN=xxxx-...' -PublisherDisplay 'My Studio'
     # values come from Partner Center > Product management > Product identity
 #>
 [CmdletBinding()]
@@ -39,11 +39,11 @@ $version4 = ((Get-Content (Join-Path $repoRoot 'VERSION') -Raw).Trim() + '.0')
 $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path $csc)) { $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe' }
 if (-not (Test-Path $csc)) { throw 'csc.exe not found - .NET Framework 4.x is required.' }
-$launcher = Join-Path $storeDir 'WinTrashLauncher.exe'
+$launcher = Join-Path $storeDir 'SweepShieldLauncher.exe'
 $icoArg = @()
 $ico = Join-Path $storeDir 'icon.ico'
 if (Test-Path $ico) { $icoArg = @("/win32icon:$ico") }
-& $csc /nologo /target:exe /platform:anycpu /out:$launcher @icoArg (Join-Path $storeDir 'WinTrashLauncher.cs')
+& $csc /nologo /target:exe /platform:anycpu /out:$launcher @icoArg (Join-Path $storeDir 'SweepShieldLauncher.cs')
 Write-Host "√ Launcher compiled: $launcher" -ForegroundColor Green
 
 # ---- 2. Generate placeholder assets if missing --------------------------------
@@ -75,7 +75,7 @@ New-Logo -W 50  -H 50  -Path (Join-Path $assets 'StoreLogo.png')
 # ---- 3. Stage the package layout ----------------------------------------------
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Path $stage, (Join-Path $stage 'Assets') | Out-Null
-Copy-Item (Join-Path $repoRoot 'WinTrash.ps1') $stage
+Copy-Item (Join-Path $repoRoot 'SweepShield.ps1') $stage
 Copy-Item (Join-Path $repoRoot 'LICENSE') $stage
 Copy-Item $launcher $stage
 Copy-Item (Join-Path $assets '*.png') (Join-Path $stage 'Assets')
@@ -92,11 +92,11 @@ $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\ma
     Sort-Object FullName -Descending | Select-Object -First 1
 if (-not $makeappx) {
     Write-Warning 'makeappx.exe not found (install the Windows 10/11 SDK). Layout is staged - pack later with:'
-    Write-Host "  makeappx pack /d `"$stage`" /p `"$outDir\WinTrash_$version4.msix`"" -ForegroundColor Cyan
+    Write-Host "  makeappx pack /d `"$stage`" /p `"$outDir\SweepShield_$version4.msix`"" -ForegroundColor Cyan
     return
 }
 if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir | Out-Null }
-$msix = Join-Path $outDir "WinTrash_$version4.msix"
+$msix = Join-Path $outDir "SweepShield_$version4.msix"
 & $makeappx.FullName pack /o /d $stage /p $msix | Out-Null
 Write-Host "√ Packed: $msix" -ForegroundColor Green
 

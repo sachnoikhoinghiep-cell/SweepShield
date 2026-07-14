@@ -1,14 +1,14 @@
-# WinTrash Toolkit — Privacy Policy
+# SweepShield — Privacy Policy
 
 _Last updated: 2026-07-14_
 
-WinTrash Toolkit ("the app") is a local system utility. This policy describes what data the app touches and what — if anything — leaves your machine.
+SweepShield ("the app") is a local system utility. This policy describes what data the app touches and what — if anything — leaves your machine.
 
 ## What the app does NOT do
 
 - The app does **not collect, store, or transmit any personal data**.
 - There is **no telemetry, no analytics, no advertising ID, no account**.
-- Scan results, HTML reports, backups, and logs are written **only to your own disk** (the app's folder in portable mode, or `%LOCALAPPDATA%\WinTrash` in the Store build) and are never uploaded anywhere.
+- Scan results, HTML reports, backups, and logs are written **only to your own disk** (the app's folder in portable mode, or `%LOCALAPPDATA%\SweepShield` in the Store build) and are never uploaded anywhere.
 
 ## What the app reads locally
 

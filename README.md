@@ -1,4 +1,4 @@
-# <img src="assets/icon.png" width="28" alt=""> WinTrash Toolkit
+# <img src="assets/icon.png" width="28" alt=""> SweepShield
 
 **A single PowerShell file** that scans 18 kinds of application leftovers on Windows and cleans them **selectively, item by item** — you tick each entry with the Space key; nothing is ever deleted in bulk automatically.
 
@@ -11,7 +11,7 @@
 > **Important when downloading from the internet:** Windows marks downloaded files and blocks script execution. Open PowerShell in the file's folder and unblock it first:
 >
 > ```powershell
-> Unblock-File .\WinTrash.ps1
+> Unblock-File .\SweepShield.ps1
 > ```
 >
 > If you hit *"running scripts is disabled on this system"*, allow signed/local scripts to run (one-time setup):
@@ -21,7 +21,7 @@
 > ```
 
 ```powershell
-.\WinTrash.ps1
+.\SweepShield.ps1
 ```
 
 1. Pick a **language**: Tiếng Việt / English / 中文 / Русский
@@ -31,8 +31,8 @@
 
 Run without the menu:
 ```powershell
-.\WinTrash.ps1 -Language en -Role Developer -Action scan     # scan only + HTML report
-.\WinTrash.ps1 -Language en -Role User -Action clean         # scan + pick + clean
+.\SweepShield.ps1 -Language en -Role Developer -Action scan     # scan only + HTML report
+.\SweepShield.ps1 -Language en -Role User -Action clean         # scan + pick + clean
 ```
 
 ## Interactive cleanup (the main feature)
@@ -47,13 +47,13 @@ After scanning, every cleanable item appears in a **checkbox list**:
 | **Space** | Toggle an item |
 | A / N | Select all / none |
 | **F** | Filter by severity (All -> High -> Medium -> Info) |
-| **I** | Hide this item forever (written to `wintrash.ignore.json` — never reported again) |
+| **I** | Hide this item forever (written to `sweepshield.ignore.json` — never reported again) |
 | **Enter** | Confirm (final y/N prompt) |
 | Esc | Cancel, do nothing |
 
 The severity column is color-coded: **High** red | **Medium** yellow | **Info** blue.
 
-**Nothing is deleted until you press Enter and type `y`.** Every cleanup creates a `WinTrashBackups\<timestamp>\` folder containing: `.reg` exports of every deleted key/value, task `.xml` files, the original PATH, and a full log. Folders/files go to the Recycle Bin.
+**Nothing is deleted until you press Enter and type `y`.** Every cleanup creates a `SweepShieldBackups\<timestamp>\` folder containing: `.reg` exports of every deleted key/value, task `.xml` files, the original PATH, and a full log. Folders/files go to the Recycle Bin.
 
 ## The 18 leftover types scanned
 
@@ -76,7 +76,7 @@ An HTML report is exported after every scan:
 
 ## Bundled utilities
 
-- **Restore** (`-Action restore` or menu): pick a backup from `WinTrashBackups\` -> automatically re-imports `.reg` files, re-registers scheduled tasks, restores PATH.
+- **Restore** (`-Action restore` or menu): pick a backup from `SweepShieldBackups\` -> automatically re-imports `.reg` files, re-registers scheduled tasks, restores PATH.
 - **Scan history diff**: every scan saves a snapshot to `ScanHistory\` (keeps 12) and reports *"+N new items, M items gone since the last scan"* — turning the tool into a system health monitor.
 - **Safe temp cleanup** (`-Action temp`): deletes only files older than 24 hours in User Temp / Windows Temp / CrashDumps; locked files are skipped automatically.
 - **Monthly scan schedule** (`-Action schedule`): create/remove a Scheduled Task that scans on the 1st of every month.
@@ -95,7 +95,7 @@ Touches only **loose files at the root** of Downloads (never subfolders), groups
 - Windows PowerShell 5.1 or PowerShell 7+ (file saved as UTF-8 with BOM).
 - No Administrator needed to scan; some items (services, HKLM, Machine PATH, Defender) require elevation to **clean** — failed items are reported so you can re-run elevated.
 - Heuristics aren't perfect: the Medium group may contain portable apps — always read carefully before ticking.
-- The `legacy\` folder holds the old standalone scripts (now merged into `WinTrash.ps1`).
+- The `legacy\` folder holds the old standalone scripts (now merged into `SweepShield.ps1`).
 
 ## License
 

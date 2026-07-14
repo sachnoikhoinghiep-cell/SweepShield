@@ -8,10 +8,10 @@ body:
       value: |
         Thanks for reporting a bug. The first three fields below determine whether the bug can be reproduced — please don't skip them.
   - type: input
-    id: wintrash-version
+    id: sweepshield-version
     attributes:
-      label: WinTrash version
-      description: Shown in the banner when the script runs, or search the file for WinTrashVersion
+      label: SweepShield version
+      description: Shown in the banner when the script runs, or search the file for SweepShieldVersion
       placeholder: "1.3.1"
     validations:
       required: true
@@ -33,8 +33,8 @@ body:
       label: How the script was launched
       description: Important — the same bug may only appear in ONE launch mode
       options:
-        - Typed .\WinTrash.ps1 in a PowerShell window
-        - powershell/pwsh -File WinTrash.ps1
+        - Typed .\SweepShield.ps1 in a PowerShell window
+        - powershell/pwsh -File SweepShield.ps1
         - Right-click file -> Run with PowerShell
         - Other (specify in the description)
     validations:
@@ -69,7 +69,7 @@ body:
       label: Bug description and reproduction steps
       description: What did you do, in what order, and what did you see?
       placeholder: |
-        1. Ran .\WinTrash.ps1, picked English, User role
+        1. Ran .\SweepShield.ps1, picked English, User role
         2. Chose Clean, ticked 3 items, Enter, typed y
         3. The screen showed...
     validations:

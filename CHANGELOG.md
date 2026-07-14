@@ -2,14 +2,17 @@
 
 ## [1.4.0] - 2026-07-14
 
+### Renamed
+- **The app is now SweepShield** (previously WinTrash) — matching the new icon (a sweeping brush + protection shield) and giving the Store listing a distinct brand. Renamed throughout: script file `SweepShield.ps1`, backup folder `SweepShieldBackups\`, data folder `%LOCALAPPDATA%\SweepShield`, ignore file `sweepshield.ignore.json`, reports `sweepshield-report_*.html`, scheduled task "SweepShield Monthly Scan", env vars `SWEEPSHIELD_*`, launcher/manifest/docs. The GitHub repository URL is unchanged.
+
 ### Added
 - **Microsoft Store packaging kit** (`store/`): MSIX manifest template (full-trust, neutral arch), a tiny C# console launcher as the required exe entry point, and `build-msix.ps1` that compiles the launcher with the built-in csc.exe, generates placeholder logos, stages the layout, packs with makeappx and optionally signs for sideload testing. `STORE.md` documents the full submission checklist and policy risks; `PRIVACY.md` provides the privacy policy the listing requires.
-- **Writable data root**: backups, scan history, HTML reports, Downloads logs and the ignore list now live in the script folder only when it is writable (portable mode, unchanged behavior); otherwise they fall back to `%LOCALAPPDATA%\WinTrash` (Program Files, MSIX WindowsApps). Override with the `WINTRASH_DATA_DIR` environment variable.
+- **Writable data root**: backups, scan history, HTML reports, Downloads logs and the ignore list now live in the script folder only when it is writable (portable mode, unchanged behavior); otherwise they fall back to `%LOCALAPPDATA%\SweepShield` (Program Files, MSIX WindowsApps). Override with the `SWEEPSHIELD_DATA_DIR` environment variable.
 
 - **App icon everywhere**: master icon at `assets/icon.png`, rendered into the MSIX logos (`store/Assets/`, replacing the generated placeholders), a multi-size `store/icon.ico` embedded into the launcher exe, an embedded base64 favicon in the HTML report, and the README header.
 
 ### Changed
-- **Packaged (Store) mode** — detected via the WindowsApps install path or `WINTRASH_PACKAGED=1` — skips the self-update check entirely: updates ship through the Store and the build makes no network calls at all.
+- **Packaged (Store) mode** — detected via the WindowsApps install path or `SWEEPSHIELD_PACKAGED=1` — skips the self-update check entirely: updates ship through the Store and the build makes no network calls at all.
 
 ## [1.3.1] - 2026-07-12
 
@@ -28,23 +31,23 @@
 - **"WHAT'S NEW" shown before updating**: the self-update prompt now downloads `CHANGELOG.md` from GitHub and lists the changes of ALL releases between the running and the new version (max 30 lines, long lines truncated to 160 chars) before asking y/N — you know what you are about to receive. Download/parse errors are skipped quietly and the update prompt still appears; version comparison is normalized to 4 components so a `VERSION` of `1.4` still matches a `[1.4.0]` header.
 
 ### Fixed
-- **Folders > 4 GB are moved into `WinTrashBackups` instead of the Recycle Bin during cleanup**: folders over the Recycle Bin quota are PERMANENTLY deleted by the shell, silently, with no exception (`FOF_NOCONFIRMATION`) — reproduced experimentally; for tens-of-GB Docker/WSL vhdx files this broke the "every deletion is backed up" promise. Same volume is an instant rename; cross-volume copies+deletes (slower but undoable). The fallback branch for Recycle API failures also switched to `MoveDirectory` (Move-Item can't move directories across volumes on PS 5.1).
+- **Folders > 4 GB are moved into `SweepShieldBackups` instead of the Recycle Bin during cleanup**: folders over the Recycle Bin quota are PERMANENTLY deleted by the shell, silently, with no exception (`FOF_NOCONFIRMATION`) — reproduced experimentally; for tens-of-GB Docker/WSL vhdx files this broke the "every deletion is backed up" promise. Same volume is an instant rename; cross-volume copies+deletes (slower but undoable). The fallback branch for Recycle API failures also switched to `MoveDirectory` (Move-Item can't move directories across volumes on PS 5.1).
 - **Docker folders removed from the Folders module** (added to the skip-list) — prevents the same path being reported by two modules and MB double-counted in the summary/HTML.
 
 ## [1.2.2] - 2026-07-07
 
 ### Fixed
-- **"Write-StatusLine is not recognized" during cleanup (issue #1)**: the two scriptblocks printing √/× result lines in `Remove-SelectedFindings` used `.GetNewClosure()` - the closure gets bound to a dynamic module, and command lookup inside a module only walks *module -> global*, skipping script scope. Running the script as `.\WinTrash.ps1` in a console (functions live in script scope) hit the error on EVERY deleted item, the OK/fail counters read 0 and `cleanup.log` was empty (although deletion + backup did run); running via `-File`/right-click was fine (functions land in global scope), which is why it never surfaced. Fix: drop `GetNewClosure` - plain blocks keep the original session state, so functions and variables resolve correctly in every launch mode, on both PS 5.1 and PS 7.
-- **Test suite broke with syntax errors on PS 5.1**: `tests\WinTrash.Tests.ps1` was missing its UTF-8 BOM - PS 5.1 read the file as CP1252, a few bytes of Vietnamese text turned into smart-quotes and confused the parser's string handling. Added the BOM (matching `WinTrash.ps1`); added an AST test banning `GetNewClosure` from returning.
+- **"Write-StatusLine is not recognized" during cleanup (issue #1)**: the two scriptblocks printing √/× result lines in `Remove-SelectedFindings` used `.GetNewClosure()` - the closure gets bound to a dynamic module, and command lookup inside a module only walks *module -> global*, skipping script scope. Running the script as `.\SweepShield.ps1` in a console (functions live in script scope) hit the error on EVERY deleted item, the OK/fail counters read 0 and `cleanup.log` was empty (although deletion + backup did run); running via `-File`/right-click was fine (functions land in global scope), which is why it never surfaced. Fix: drop `GetNewClosure` - plain blocks keep the original session state, so functions and variables resolve correctly in every launch mode, on both PS 5.1 and PS 7.
+- **Test suite broke with syntax errors on PS 5.1**: `tests\SweepShield.Tests.ps1` was missing its UTF-8 BOM - PS 5.1 read the file as CP1252, a few bytes of Vietnamese text turned into smart-quotes and confused the parser's string handling. Added the BOM (matching `SweepShield.ps1`); added an AST test banning `GetNewClosure` from returning.
 - **Monthly schedule created from PowerShell 7 never ran**: PS 7.3+ defaults `PSNativeCommandArgumentPassing='Windows'`, which RE-escapes the hand-written `\"` inside schtasks' `/TR` -> the task stored literal `\"` around the path and silently failed every month despite reporting success at creation. Forced `Legacy` in a child scope around `schtasks /Create` (harmless on PS 5.1) - verified clean task XML on both engines.
-- **Schedule pointed at the wrong file when the script was renamed**: `Invoke-FlowSchedule` hardcoded the name `WinTrash.ps1` instead of using `$PSCommandPath` like the elevation path - users keeping a file like `WinTrash (1).ps1` got a task pointing at a non-existent file, failing silently. Now uses `$PSCommandPath`.
+- **Schedule pointed at the wrong file when the script was renamed**: `Invoke-FlowSchedule` hardcoded the name `SweepShield.ps1` instead of using `$PSCommandPath` like the elevation path - users keeping a file like `SweepShield (1).ps1` got a task pointing at a non-existent file, failing silently. Now uses `$PSCommandPath`.
 - **Background spinner drew over the DevTrash report**: the final report block of `Invoke-ScanDevTrash` ran while the background spinner was still spinning (skipping the handshake used elsewhere) -> occasional spinner frames spliced into/misaligned the report lines. Now prints via `Invoke-WithSpinnerPaused`.
 - **Esc / Enter-without-selection in the picker misreported "Console is not interactive"**: the empty array returned by `Show-CheckboxMenu` was pipeline-unwrapped into `$null` - identical to the sentinel reserved for non-interactive consoles. Comma-wrapped the return (now correctly reports "Nothing selected").
 
 ## [1.2.1] - 2026-07-06
 
 ### Added
-- **OFFLINE user registry scan** (multi-user, requires admin): for users not logged in, the script temporarily loads `NTUSER.DAT` via `reg load` into a dedicated mount point (`HKU\WinTrash_Offline`), reads Run/RunOnce, then **unloads immediately** (wrapped in try/finally + GC to reliably release handles). Cleanup follows the same cycle: load -> .reg backup -> delete value -> unload (RemoveKind `OfflineRegValue`). Locked hives (user just logged in) are skipped quietly with a clear message during cleanup.
+- **OFFLINE user registry scan** (multi-user, requires admin): for users not logged in, the script temporarily loads `NTUSER.DAT` via `reg load` into a dedicated mount point (`HKU\SweepShield_Offline`), reads Run/RunOnce, then **unloads immediately** (wrapped in try/finally + GC to reliably release handles). Cleanup follows the same cycle: load -> .reg backup -> delete value -> unload (RemoveKind `OfflineRegValue`). Locked hives (user just logged in) are skipped quietly with a clear message during cleanup.
 
 ## [1.2.0] - 2026-07-06
 
@@ -90,12 +93,12 @@
 
 ## [1.0.0] - 2026-07-06
 
-First release — the whole toolkit merged into a single `WinTrash.ps1` file.
+First release — the whole toolkit merged into a single `SweepShield.ps1` file.
 
 ### Features
 - **16 leftover scan modules**: PATH, EnvVars, Folders (orphaned AppData/ProgramData), Services, Startup, Tasks, Uninstall ghosts, App Paths, Shortcuts, Firewall, Defender exclusions, proxy-tool root CAs, IFEO, Native Messaging Hosts, URL Protocols, vendor registry keys.
-- **Interactive cleanup**: checkbox list (↑↓/Space/A/N), severity filter (F), permanent hiding via `wintrash.ignore.json` (I). Nothing is deleted until confirmed.
-- **Everything backed up before deletion**: `.reg` exports, task `.xml` files (with manifest), original PATH, Recycle Bin for files/folders → `WinTrashBackups\`.
+- **Interactive cleanup**: checkbox list (↑↓/Space/A/N), severity filter (F), permanent hiding via `sweepshield.ignore.json` (I). Nothing is deleted until confirmed.
+- **Everything backed up before deletion**: `.reg` exports, task `.xml` files (with manifest), original PATH, Recycle Bin for files/folders → `SweepShieldBackups\`.
 - **Restore** (`-Action restore`): re-imports .reg files, re-registers tasks, restores PATH from a chosen backup.
 - **Scan history diff**: every scan saves a snapshot to `ScanHistory\`, reporting new/gone items vs the previous run (keeps 12).
 - **Safe temp cleanup**: only files older than 24h in User Temp / Windows Temp / CrashDumps.

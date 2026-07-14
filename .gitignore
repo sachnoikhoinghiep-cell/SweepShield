@@ -2,12 +2,12 @@
 PathBackups/
 CleanupLogs/
 StartupBackups/
-WinTrashBackups/
+SweepShieldBackups/
 DownloadsLogs/
 ScanHistory/
 legacy/
-wintrash-report_*.html
-wintrash.ignore.json
+sweepshield-report_*.html
+sweepshield.ignore.json
 *.log
 .playwright-mcp/
 *.bak
@@ -15,3 +15,4 @@ dist/
 store/layout/
 store/out/
 store/*.exe
+wintrash-report_*.html

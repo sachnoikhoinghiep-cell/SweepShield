@@ -15,7 +15,7 @@ jobs:
         shell: powershell
         run: |
           $errs = $null
-          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\WinTrash.ps1", [ref]$null, [ref]$errs)
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\SweepShield.ps1", [ref]$null, [ref]$errs)
           if ($errs.Count) { $errs | ForEach-Object { Write-Error ("Line {0}: {1}" -f $_.Extent.StartLineNumber, $_.Message) }; exit 1 }
           Write-Host 'PS 5.1 parse: OK'
 
@@ -23,7 +23,7 @@ jobs:
         shell: pwsh
         run: |
           $errs = $null
-          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD/WinTrash.ps1", [ref]$null, [ref]$errs)
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD/SweepShield.ps1", [ref]$null, [ref]$errs)
           if ($errs.Count) { $errs | ForEach-Object { Write-Error ("Line {0}: {1}" -f $_.Extent.StartLineNumber, $_.Message) }; exit 1 }
           Write-Host 'PS 7 parse: OK'
 
@@ -31,7 +31,7 @@ jobs:
         shell: pwsh
         run: |
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-          $results = Invoke-ScriptAnalyzer -Path ./WinTrash.ps1 -Severity Error
+          $results = Invoke-ScriptAnalyzer -Path ./SweepShield.ps1 -Severity Error
           $results | Format-Table -AutoSize
           if ($results.Count -gt 0) { exit 1 }
 

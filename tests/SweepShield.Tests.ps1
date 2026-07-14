@@ -1,14 +1,14 @@
-﻿# Pester 5 tests for WinTrash.ps1's pure functions
+﻿# Pester 5 tests for SweepShield.ps1's pure functions
 # Run: Invoke-Pester -Path tests\
-# Mechanism: set WINTRASH_TEST=1 then dot-source the script -> loads functions only, main does not run.
+# Mechanism: set SWEEPSHIELD_TEST=1 then dot-source the script -> loads functions only, main does not run.
 
 BeforeAll {
-    $env:WINTRASH_TEST = '1'
-    . (Join-Path $PSScriptRoot '..\WinTrash.ps1')
+    $env:SWEEPSHIELD_TEST = '1'
+    . (Join-Path $PSScriptRoot '..\SweepShield.ps1')
 }
 
 AfterAll {
-    Remove-Item Env:\WINTRASH_TEST -ErrorAction SilentlyContinue
+    Remove-Item Env:\SWEEPSHIELD_TEST -ErrorAction SilentlyContinue
 }
 
 Describe 'Remove-Diacritics' {
@@ -192,16 +192,16 @@ Describe 'Scan module list' {
 }
 
 Describe 'Regression issue #1: GetNewClosure is banned' {
-    It 'WinTrash.ps1 contains no .GetNewClosure() calls' {
+    It 'SweepShield.ps1 contains no .GetNewClosure() calls' {
         # GetNewClosure binds a scriptblock to a dynamic module; command lookup inside a
         # module only walks module -> global, SKIPPING script scope. Running the script as
-        # `.\WinTrash.ps1` (functions live in script scope, unlike -File which puts them
+        # `.\SweepShield.ps1` (functions live in script scope, unlike -File which puts them
         # in global) makes every script function "disappear" inside the closure ->
         # "Write-StatusLine is not recognized" mid-cleanup (issue #1). Plain blocks keep
         # the original session state, which is all we need.
         $tokens = $null; $errors = $null
         $ast = [System.Management.Automation.Language.Parser]::ParseFile(
-            (Join-Path $PSScriptRoot '..\WinTrash.ps1'), [ref]$tokens, [ref]$errors)
+            (Join-Path $PSScriptRoot '..\SweepShield.ps1'), [ref]$tokens, [ref]$errors)
         $calls = $ast.FindAll({
             param($node)
             $node -is [System.Management.Automation.Language.InvokeMemberExpressionAst] -and

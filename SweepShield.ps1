@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    WinTrash Toolkit - ALL-IN-ONE. Scans 18 kinds of Windows application
+    SweepShield - ALL-IN-ONE. Scans 18 kinds of Windows application
     leftovers, lets you PICK EACH ITEM with Space before cleaning
     (everything is backed up before deletion).
 
@@ -27,8 +27,8 @@
     Run directly: scan | clean | downloads | devscan | install-devradar | install-claudefy
 
 .EXAMPLE
-    .\WinTrash.ps1
-    .\WinTrash.ps1 -Language en -Role Developer -Action scan
+    .\SweepShield.ps1
+    .\SweepShield.ps1 -Language en -Role Developer -Action scan
 
 .NOTES
     MIT License. Compatible with Windows PowerShell 5.1 and PowerShell 7+.
@@ -50,30 +50,30 @@ $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
-$script:WinTrashVersion = [version]'1.4.0'
+$script:SweepShieldVersion = [version]'1.4.0'
 $script:UpdateRawBase = 'https://raw.githubusercontent.com/hasoftware/WinTrash/main'
 
 # Packaged mode (MSIX / Microsoft Store): the install folder under WindowsApps is
 # read-only and Store policy requires updates to ship through the Store itself
-$script:IsPackaged = ($PSScriptRoot -match '\\WindowsApps\\') -or ($env:WINTRASH_PACKAGED -eq '1')
+$script:IsPackaged = ($PSScriptRoot -match '\\WindowsApps\\') -or ($env:SWEEPSHIELD_PACKAGED -eq '1')
 
 function Get-WritableDataRoot {
     # Where backups/scan history/reports/ignore list live.
-    # Priority: WINTRASH_DATA_DIR env var -> the script's folder (portable mode,
-    # historical behavior) -> %LOCALAPPDATA%\WinTrash when the script folder is
+    # Priority: SWEEPSHIELD_DATA_DIR env var -> the script's folder (portable mode,
+    # historical behavior) -> %LOCALAPPDATA%\SweepShield when the script folder is
     # read-only (Program Files, MSIX WindowsApps...).
-    if ($env:WINTRASH_DATA_DIR) {
-        $dir = $env:WINTRASH_DATA_DIR
+    if ($env:SWEEPSHIELD_DATA_DIR) {
+        $dir = $env:SWEEPSHIELD_DATA_DIR
         if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force -ErrorAction SilentlyContinue | Out-Null }
         return $dir
     }
-    $probe = Join-Path $PSScriptRoot ('.wintrash_probe_{0}' -f [guid]::NewGuid().ToString('N'))
+    $probe = Join-Path $PSScriptRoot ('.sweepshield_probe_{0}' -f [guid]::NewGuid().ToString('N'))
     try {
         [System.IO.File]::WriteAllText($probe, '1')
         Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue
         return $PSScriptRoot
     } catch {
-        $dir = Join-Path $env:LOCALAPPDATA 'WinTrash'
+        $dir = Join-Path $env:LOCALAPPDATA 'SweepShield'
         if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
         return $dir
     }
@@ -87,7 +87,7 @@ $i18n = @{
         ChooseRole  = 'Bạn là ai?'
         RoleUser    = 'Người dùng thường'
         RoleDev     = 'Developer (thêm quét toolchain, cài DevRadar + Claudefy)'
-        MenuTitle   = 'WINTRASH TOOLKIT'
+        MenuTitle   = 'SWEEPSHIELD'
         MenuScan    = 'Quét tổng thể 18 loại tàn dư (chỉ đọc + báo cáo HTML)'
         MenuClean   = 'Quét & DỌN DẸP - tự chọn từng mục bằng phím Space'
         MenuDl      = 'Sắp xếp Downloads (xem trước, chọn nhóm, có Undo)'
@@ -104,11 +104,11 @@ $i18n = @{
         MenuTemp    = 'Dọn file tạm an toàn (Temp > 24 giờ)'
         MenuRestore = 'Khôi phục từ backup (hoàn tác lần dọn trước)'
         MenuSched   = 'Bật/tắt lịch quét tự động hàng tháng'
-        IgnoredHidden = 'Đã ẩn {0} mục theo danh sách bỏ qua (wintrash.ignore.json)'
+        IgnoredHidden = 'Đã ẩn {0} mục theo danh sách bỏ qua (sweepshield.ignore.json)'
         DiffFirst   = 'Lần quét đầu tiên đã được lưu để so sánh cho lần sau.'
         DiffNew     = 'So với lần quét {0}: +{1} mục mới, {2} mục đã biến mất'
         RestoreTitle= 'Các bản backup có sẵn (nhập số để khôi phục, Enter để thoát):'
-        RestoreNothing = 'Chưa có bản backup nào trong WinTrashBackups.'
+        RestoreNothing = 'Chưa có bản backup nào trong SweepShieldBackups.'
         RestoreDone = 'Khôi phục xong: {0} OK, {1} lỗi.'
         TempTitle   = 'DỌN FILE TẠM AN TOÀN - chỉ xóa file cũ hơn 24 giờ'
         TempConfirm = 'Xóa {0:N0} MB file tạm cũ? [y/N]'
@@ -154,7 +154,7 @@ $i18n = @{
         ChooseRole  = 'Who are you?'
         RoleUser    = 'Regular user'
         RoleDev     = 'Developer (adds toolchain scan, DevRadar + Claudefy install)'
-        MenuTitle   = 'WINTRASH TOOLKIT'
+        MenuTitle   = 'SWEEPSHIELD'
         MenuScan    = 'Full scan - 18 leftover types (read-only + HTML report)'
         MenuClean   = 'Scan & CLEAN - pick items one by one with Space'
         MenuDl      = 'Organize Downloads (preview, pick groups, undo available)'
@@ -171,11 +171,11 @@ $i18n = @{
         MenuTemp    = 'Safe temp cleanup (Temp files > 24h)'
         MenuRestore = 'Restore from backup (undo previous cleanup)'
         MenuSched   = 'Enable/disable monthly auto-scan'
-        IgnoredHidden = '{0} items hidden by ignore list (wintrash.ignore.json)'
+        IgnoredHidden = '{0} items hidden by ignore list (sweepshield.ignore.json)'
         DiffFirst   = 'First scan saved as baseline for future comparison.'
         DiffNew     = 'Compared to scan {0}: +{1} new items, {2} items gone'
         RestoreTitle= 'Available backups (enter number to restore, Enter to exit):'
-        RestoreNothing = 'No backups found in WinTrashBackups.'
+        RestoreNothing = 'No backups found in SweepShieldBackups.'
         RestoreDone = 'Restore finished: {0} OK, {1} failed.'
         TempTitle   = 'SAFE TEMP CLEANUP - only files older than 24 hours'
         TempConfirm = 'Delete {0:N0} MB of old temp files? [y/N]'
@@ -221,7 +221,7 @@ $i18n = @{
         ChooseRole  = '您是谁？'
         RoleUser    = '普通用户'
         RoleDev     = '开发者（额外：工具链扫描，安装 DevRadar + Claudefy）'
-        MenuTitle   = 'WINTRASH TOOLKIT'
+        MenuTitle   = 'SWEEPSHIELD'
         MenuScan    = '全面扫描 - 18 类残留（只读 + HTML 报告）'
         MenuClean   = '扫描并清理 - 用空格键逐项选择'
         MenuDl      = '整理下载文件夹（预览、选组、可撤销）'
@@ -238,11 +238,11 @@ $i18n = @{
         MenuTemp    = '安全清理临时文件（超过 24 小时）'
         MenuRestore = '从备份恢复（撤销上次清理）'
         MenuSched   = '启用/禁用每月自动扫描'
-        IgnoredHidden = '已按忽略列表隐藏 {0} 项 (wintrash.ignore.json)'
+        IgnoredHidden = '已按忽略列表隐藏 {0} 项 (sweepshield.ignore.json)'
         DiffFirst   = '首次扫描已保存，供下次对比。'
         DiffNew     = '与 {0} 的扫描相比：新增 {1} 项，消失 {2} 项'
         RestoreTitle= '可用备份（输入编号恢复，Enter 退出）：'
-        RestoreNothing = 'WinTrashBackups 中没有备份。'
+        RestoreNothing = 'SweepShieldBackups 中没有备份。'
         RestoreDone = '恢复完成：{0} 成功，{1} 失败。'
         TempTitle   = '安全清理临时文件 - 仅删除超过 24 小时的文件'
         TempConfirm = '删除 {0:N0} MB 旧临时文件？[y/N]'
@@ -288,7 +288,7 @@ $i18n = @{
         ChooseRole  = 'Кто вы?'
         RoleUser    = 'Обычный пользователь'
         RoleDev     = 'Разработчик (плюс сканирование тулчейнов, DevRadar + Claudefy)'
-        MenuTitle   = 'WINTRASH TOOLKIT'
+        MenuTitle   = 'SWEEPSHIELD'
         MenuScan    = 'Полное сканирование - 18 типов остатков (только чтение + HTML)'
         MenuClean   = 'Сканировать и ОЧИСТИТЬ - выбор пунктов пробелом'
         MenuDl      = 'Организация Downloads (предпросмотр, выбор групп, откат)'
@@ -305,11 +305,11 @@ $i18n = @{
         MenuTemp    = 'Безопасная очистка Temp (файлы старше 24 ч)'
         MenuRestore = 'Восстановление из бэкапа (откат прошлой очистки)'
         MenuSched   = 'Вкл/выкл ежемесячное автосканирование'
-        IgnoredHidden = 'Скрыто {0} пунктов по списку игнорирования (wintrash.ignore.json)'
+        IgnoredHidden = 'Скрыто {0} пунктов по списку игнорирования (sweepshield.ignore.json)'
         DiffFirst   = 'Первое сканирование сохранено для будущего сравнения.'
         DiffNew     = 'По сравнению со сканом {0}: +{1} новых, {2} исчезло'
         RestoreTitle= 'Доступные бэкапы (номер для восстановления, Enter - выход):'
-        RestoreNothing = 'Бэкапов в WinTrashBackups нет.'
+        RestoreNothing = 'Бэкапов в SweepShieldBackups нет.'
         RestoreDone = 'Восстановление: {0} OK, {1} ошибок.'
         TempTitle   = 'БЕЗОПАСНАЯ ОЧИСТКА TEMP - только файлы старше 24 часов'
         TempConfirm = 'Удалить {0:N0} МБ старых временных файлов? [y/N]'
@@ -604,7 +604,7 @@ function Show-CheckboxMenu {
         [string]$Title,
         [string]$Help,
         [string[]]$Severities,   # optional: colored severity column (High red / Medium yellow / Info blue)
-        [switch]$AllowIgnore     # enable the I key: hide an item forever (written to wintrash.ignore.json)
+        [switch]$AllowIgnore     # enable the I key: hide an item forever (written to sweepshield.ignore.json)
     )
     $script:pickerIgnored = @()
     if (-not (Test-Interactive)) { return $null }
@@ -950,10 +950,10 @@ function Get-OtherUserProfiles {
     return $result.ToArray()
 }
 
-$script:offlineMount = 'WinTrash_Offline'   # temporary mount point in HKEY_USERS for offline hives
+$script:offlineMount = 'SweepShield_Offline'   # temporary mount point in HKEY_USERS for offline hives
 
 function Invoke-WithOfflineHive {
-    <# Load an offline user's NTUSER.DAT into HKU\WinTrash_Offline, run $Body,
+    <# Load an offline user's NTUSER.DAT into HKU\SweepShield_Offline, run $Body,
        then ALWAYS unload (even on error). Returns $null when the hive can't be
        loaded (locked - e.g. the user just logged in). #>
     param([string]$HivePath, [scriptblock]$Body)
@@ -1022,7 +1022,7 @@ function Get-FindingId {
     return '{0}|{1}|{2}' -f $Finding.Category, $Finding.Name, $Finding.Target
 }
 
-$script:ignoreFile = Join-Path $script:DataRoot 'wintrash.ignore.json'
+$script:ignoreFile = Join-Path $script:DataRoot 'sweepshield.ignore.json'
 function Get-IgnoreList {
     if (-not (Test-Path -LiteralPath $script:ignoreFile)) { return @() }
     try { return @(Get-Content -LiteralPath $script:ignoreFile -Raw | ConvertFrom-Json) } catch { return @() }
@@ -1871,7 +1871,7 @@ function Remove-SelectedFindings {
     param([object[]]$Selected, [hashtable]$L)
     Add-Type -AssemblyName Microsoft.VisualBasic
     $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-    $backupDir = Join-Path $script:DataRoot "WinTrashBackups\$timestamp"
+    $backupDir = Join-Path $script:DataRoot "SweepShieldBackups\$timestamp"
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
     $log = [System.Collections.Generic.List[string]]::new()
     $ok = 0; $fail = 0
@@ -2046,7 +2046,7 @@ function Remove-SelectedFindings {
             }
             if ($deferOrSkip) { continue }
             # Do NOT use GetNewClosure: it binds the block to a dynamic module -> when the
-            # script runs as `.\WinTrash.ps1` (functions live in script scope, not global
+            # script runs as `.\SweepShield.ps1` (functions live in script scope, not global
             # as with -File) the module can't see Write-StatusLine (issue #1).
             # A plain block keeps the original session state -> functions and variables resolve fine.
             Invoke-WithSpinnerPaused -Handle $removalSpinner -Body {
@@ -2178,7 +2178,7 @@ function Export-HtmlReport {
     param([string]$Path)
     $enc = { param($s) [System.Net.WebUtility]::HtmlEncode([string]$s) }
     $sb = [System.Text.StringBuilder]::new()
-    [void]$sb.AppendLine('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>WinTrash Report</title>')
+    [void]$sb.AppendLine('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>SweepShield Report</title>')
     # App icon as an embedded favicon (32x32 PNG, base64) - the report stays a single self-contained file
     [void]$sb.AppendLine('<link rel="icon" type="image/png" href="data:image/png;base64,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">')
     [void]$sb.AppendLine('<style>')
@@ -2187,7 +2187,7 @@ function Export-HtmlReport {
     [void]$sb.AppendLine('th,td{border:1px solid #d0d7de;padding:6px 10px;text-align:left;font-size:13px;vertical-align:top}th{background:#eaeef2}td.mono{font-family:Consolas,monospace;word-break:break-all}')
     [void]$sb.AppendLine('.sev-High{background:#ffebe9}.sev-Medium{background:#fff8c5}.sev-Info{background:#f6f8fa}')
     [void]$sb.AppendLine('.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600}.b-High{background:#cf222e;color:#fff}.b-Medium{background:#bf8700;color:#fff}.b-Info{background:#6e7781;color:#fff}')
-    [void]$sb.AppendLine('</style></head><body><h1>🧹 WinTrash Report</h1>')
+    [void]$sb.AppendLine('</style></head><body><h1>🧹 SweepShield Report</h1>')
     [void]$sb.AppendLine(('<div class="sub">{0} | {1} | Findings: {2}</div>' -f (& $enc $env:COMPUTERNAME), (Get-Date -Format 'yyyy-MM-dd HH:mm'), $script:findings.Count))
     [void]$sb.AppendLine('<table><tr><th>Category</th><th>Count</th><th>High</th><th>Medium</th><th>Info</th><th>MB</th></tr>')
     foreach ($g in ($script:findings | Group-Object Category | Sort-Object Count -Descending)) {
@@ -2201,7 +2201,7 @@ function Export-HtmlReport {
         [void]$sb.AppendLine(('<tr class="sev-{0}"><td><span class="badge b-{0}">{0}</span></td><td>{1}</td><td>{2}</td><td class="mono">{3}</td><td>{4}</td></tr>' -f `
             $f.Severity, (& $enc $f.Category), (& $enc $f.Name), (& $enc $f.Target), (& $enc $f.Detail)))
     }
-    [void]$sb.AppendLine('</table><div class="sub">WinTrash Toolkit - MIT License</div></body></html>')
+    [void]$sb.AppendLine('</table><div class="sub">SweepShield - MIT License</div></body></html>')
     [System.IO.File]::WriteAllText($Path, $sb.ToString(), [System.Text.UTF8Encoding]::new($true))
 }
 
@@ -2211,7 +2211,7 @@ function Invoke-FlowScan {
     Invoke-AllScans -L $L
     Show-ScanSummary -L $L
     Save-ScanHistoryAndDiff -L $L
-    $html = Join-Path $script:DataRoot ("wintrash-report_{0}.html" -f (Get-Date -Format 'yyyyMMdd_HHmm'))
+    $html = Join-Path $script:DataRoot ("sweepshield-report_{0}.html" -f (Get-Date -Format 'yyyyMMdd_HHmm'))
     Export-HtmlReport -Path $html
     Write-Host ''
     Write-Host ($L.ReportSaved -f $html) -ForegroundColor Green
@@ -2229,7 +2229,7 @@ function Invoke-FlowClean {
         Invoke-AllScans -L $L
         Show-ScanSummary -L $L
     }
-    # Apply the ignore list (wintrash.ignore.json)
+    # Apply the ignore list (sweepshield.ignore.json)
     $ignoreIds = @(Get-IgnoreList)
     $allRemovable = @($script:findings | Where-Object { $_.RemoveKind -ne 'None' })
     $removable = @($allRemovable | Where-Object { $ignoreIds -notcontains (Get-FindingId $_) })
@@ -2272,7 +2272,7 @@ function Invoke-FlowClean {
             $elevAnswer = Read-Host ($L.ElevateAsk -f $adminNeeded.Count, $selected.Count)
             if ($elevAnswer -match '^[yY]') {
                 # Save the selected IDs -> the admin window re-scans and cleans exactly these items
-                $pendingDir = Join-Path $script:DataRoot 'WinTrashBackups'
+                $pendingDir = Join-Path $script:DataRoot 'SweepShieldBackups'
                 if (-not (Test-Path -LiteralPath $pendingDir)) { New-Item -ItemType Directory -Path $pendingDir -Force | Out-Null }
                 $ids = @($selected | ForEach-Object { Get-FindingId $_ })
                 ConvertTo-Json $ids | Set-Content -LiteralPath (Join-Path $pendingDir 'pending-clean.json') -Encoding UTF8
@@ -2293,7 +2293,7 @@ function Invoke-FlowClean {
 function Invoke-FlowCleanResume {
     # Runs in the Administrator window: read the saved IDs, re-scan, clean exactly those items
     param([hashtable]$L)
-    $pendingFile = Join-Path $script:DataRoot 'WinTrashBackups\pending-clean.json'
+    $pendingFile = Join-Path $script:DataRoot 'SweepShieldBackups\pending-clean.json'
     if (-not (Test-Path -LiteralPath $pendingFile)) { Write-Host $L.ResumeNothing -ForegroundColor Yellow; return }
     $ids = @(Get-Content -LiteralPath $pendingFile -Raw | ConvertFrom-Json)
     Remove-Item -LiteralPath $pendingFile -Force -ErrorAction SilentlyContinue
@@ -2310,7 +2310,7 @@ function Invoke-FlowCleanResume {
 
 function Invoke-FlowRestore {
     param([hashtable]$L)
-    $backupRoot = Join-Path $script:DataRoot 'WinTrashBackups'
+    $backupRoot = Join-Path $script:DataRoot 'SweepShieldBackups'
     $backups = @(Get-ChildItem -LiteralPath $backupRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
     if ($backups.Count -eq 0) { Write-Host $L.RestoreNothing -ForegroundColor Yellow; return }
 
@@ -2418,7 +2418,7 @@ function Invoke-FlowTemp {
 
 function Invoke-FlowSchedule {
     param([hashtable]$L)
-    $taskName = 'WinTrash Monthly Scan'
+    $taskName = 'SweepShield Monthly Scan'
     $exists = $null -ne (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue)
     if ($exists) {
         if (Test-Interactive) {
@@ -2433,7 +2433,7 @@ function Invoke-FlowSchedule {
         return
     }
     # $PSCommandPath (no hardcoded filename): if the user renamed the script (e.g.
-    # "WinTrash (1).ps1") the task still points at the running file; schtasks does not
+    # "SweepShield (1).ps1") the task still points at the running file; schtasks does not
     # validate /TR, so a wrong path fails silently forever while creation reports success
     $scriptPath = $PSCommandPath
     $tr = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"{0}\" -Language {1} -Role User -Action scan' -f $scriptPath, $script:Language
@@ -2632,13 +2632,13 @@ function Get-ChangelogForUpdate {
 function Invoke-SelfUpdate {
     param([hashtable]$L)
     try {
-        $tmp = Join-Path $env:TEMP 'WinTrash.new.ps1'
-        Invoke-WebRequest -Uri ($script:UpdateRawBase + '/WinTrash.ps1') -OutFile $tmp -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
-        # Validate the download: must parse and actually be WinTrash
+        $tmp = Join-Path $env:TEMP 'SweepShield.new.ps1'
+        Invoke-WebRequest -Uri ($script:UpdateRawBase + '/SweepShield.ps1') -OutFile $tmp -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
+        # Validate the download: must parse and actually be SweepShield
         $errs = $null
         [void][System.Management.Automation.Language.Parser]::ParseFile($tmp, [ref]$null, [ref]$errs)
         if ($errs.Count -gt 0) { throw 'downloaded file has syntax errors' }
-        if ((Get-Content -LiteralPath $tmp -Raw) -notmatch 'WinTrashVersion') { throw 'downloaded file is not valid' }
+        if ((Get-Content -LiteralPath $tmp -Raw) -notmatch 'SweepShieldVersion') { throw 'downloaded file is not valid' }
         # Back up the current copy, then replace it
         Copy-Item -LiteralPath $PSCommandPath -Destination ($PSCommandPath + '.bak') -Force
         Copy-Item -LiteralPath $tmp -Destination $PSCommandPath -Force
@@ -2659,9 +2659,9 @@ function Test-UpdatePrompt {
     Write-C $L.UpdateCheck -Color DarkGray
     Write-Host ''
     $remote = Get-RemoteVersion
-    if (-not $remote -or $remote -le $script:WinTrashVersion) { return $false }
+    if (-not $remote -or $remote -le $script:SweepShieldVersion) { return $false }
     # What's new between the running and the new version - download/parse errors skipped quietly, update prompt still shown
-    $notes = @(Get-ChangelogForUpdate -Markdown (Get-RemoteChangelog) -Current $script:WinTrashVersion -Remote $remote)
+    $notes = @(Get-ChangelogForUpdate -Markdown (Get-RemoteChangelog) -Current $script:SweepShieldVersion -Remote $remote)
     if ($notes.Count -gt 0) {
         Write-C ($L.UpdateWhatsNew -f $remote) -Color Cyan
         foreach ($line in ($notes | Select-Object -First 30)) {
@@ -2674,7 +2674,7 @@ function Test-UpdatePrompt {
         if ($notes.Count -gt 30) { Write-Host ('  ' + ($L.UpdateMoreNotes -f ($notes.Count - 30))) -ForegroundColor DarkGray }
         Write-Host ''
     }
-    $answer = Read-Host ($L.UpdateFound -f $remote, $script:WinTrashVersion)
+    $answer = Read-Host ($L.UpdateFound -f $remote, $script:SweepShieldVersion)
     if ($answer -notmatch '^[yY]') { return $false }
     if (-not (Invoke-SelfUpdate -L $L)) { return $false }
     Write-Host $L.UpdateDone -ForegroundColor Green
@@ -2685,9 +2685,9 @@ function Test-UpdatePrompt {
 # ════════════════════════ MAIN ════════════════════════
 
 # Test mode (Pester): dot-source the script to load functions without running main
-if ($env:WINTRASH_TEST -eq '1') { return }
+if ($env:SWEEPSHIELD_TEST -eq '1') { return }
 
-$tagline = 'WinTrash Toolkit — Windows leftovers scanner & cleaner | MIT License'
+$tagline = 'SweepShield — Windows leftovers scanner & cleaner | MIT License'
 
 function Invoke-OneAction {
     param([hashtable]$L, [string]$Key)
@@ -2723,7 +2723,7 @@ if ($Action) {
 if (-not (Test-Interactive)) {
     $script:Language = if ($Language) { $Language } else { 'en' }
     Show-Banner -Tagline $tagline
-    Write-Host 'Console is not interactive. Use: .\WinTrash.ps1 -Language en -Role User -Action scan|clean|temp|restore|downloads|schedule'
+    Write-Host 'Console is not interactive. Use: .\SweepShield.ps1 -Language en -Role User -Action scan|clean|temp|restore|downloads|schedule'
     return
 }
 
