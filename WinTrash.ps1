@@ -1,36 +1,37 @@
 ﻿<#
 .SYNOPSIS
-    WinTrash Toolkit - ALL-IN-ONE. Quét 18 loại tàn dư ứng dụng Windows,
-    cho CHỌN TỪNG MỤC bằng phím Space rồi mới dọn (luôn backup trước khi xóa).
+    WinTrash Toolkit - ALL-IN-ONE. Scans 18 kinds of Windows application
+    leftovers, lets you PICK EACH ITEM with Space before cleaning
+    (everything is backed up before deletion).
 
 .DESCRIPTION
-    Một file duy nhất gồm:
-      - Menu đa ngôn ngữ (Tiếng Việt / English / 中文 / Русский)
-      - 2 vai trò: User / Developer
-      - 18 module quét (PATH, EnvVars, Folders, Services, Startup, Tasks,
+    A single file containing:
+      - Multi-language menu (Tiếng Việt / English / 中文 / Русский)
+      - 2 roles: User / Developer
+      - 18 scan modules (PATH, EnvVars, Folders, Services, Startup, Tasks,
         Uninstall, AppPaths, Shortcuts, Firewall, Defender, Certs, IFEO,
         NativeMsg, Protocols, VendorReg, Docker, WSL)
-      - Dọn dẹp TƯƠNG TÁC: danh sách checkbox, ↑↓ di chuyển, Space chọn,
-        A chọn hết, N bỏ hết, Enter xác nhận, Esc hủy
-      - Mọi thao tác xóa đều backup (.reg / .xml / Recycle Bin / log)
-      - [Developer] Quét cache toolchain + cài DevRadar, Claudefy (có spinner)
-      - Sắp xếp Downloads an toàn (chỉ file rời ở gốc, chọn nhóm, có Undo)
+      - INTERACTIVE cleanup: checkbox list, ↑↓ move, Space toggle,
+        A select all, N select none, Enter confirm, Esc cancel
+      - Every deletion is backed up (.reg / .xml / Recycle Bin / log)
+      - [Developer] Toolchain cache scan + DevRadar, Claudefy install (with spinner)
+      - Safe Downloads organizer (loose root files only, pick groups, Undo)
 
 .PARAMETER Language
-    vi | en | zh | ru - bỏ qua bước hỏi ngôn ngữ.
+    vi | en | zh | ru - skips the language prompt.
 
 .PARAMETER Role
-    User | Developer - bỏ qua bước hỏi vai trò.
+    User | Developer - skips the role prompt.
 
 .PARAMETER Action
-    Chạy thẳng: scan | clean | downloads | devscan | install-devradar | install-claudefy
+    Run directly: scan | clean | downloads | devscan | install-devradar | install-claudefy
 
 .EXAMPLE
     .\WinTrash.ps1
-    .\WinTrash.ps1 -Language vi -Role Developer -Action scan
+    .\WinTrash.ps1 -Language en -Role Developer -Action scan
 
 .NOTES
-    Giấy phép MIT. Tương thích Windows PowerShell 5.1 và PowerShell 7+.
+    MIT License. Compatible with Windows PowerShell 5.1 and PowerShell 7+.
 #>
 
 [CmdletBinding()]
@@ -44,8 +45,8 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
-# Tắt progress bar mặc định của các cmdlet hệ thống (Get/Remove-NetFirewallRule,
-# Invoke-WebRequest...) - chúng vẽ khối xanh to chèn lên giao diện của mình
+# Disable the default progress bar of system cmdlets (Get/Remove-NetFirewallRule,
+# Invoke-WebRequest...) - they draw a big blue block over our UI
 $ProgressPreference = 'SilentlyContinue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
@@ -119,7 +120,7 @@ $i18n = @{
         DlNothing   = 'Không có file rời nào cần sắp xếp.'
         DlDone      = 'Đã sắp xếp {0} file. Hoàn tác: {1}'
         ReportSaved = 'Báo cáo HTML: {0}'
-        NoteVi      = 'Ghi chú: chi tiết kỹ thuật của báo cáo hiện bằng tiếng Việt.'
+        NoteVi      = 'Ghi chú: chi tiết kỹ thuật của báo cáo hiển thị bằng tiếng Anh.'
     }
     en = @{
         ChooseLang  = 'Chọn ngôn ngữ / Choose language / 选择语言 / Выберите язык:'
@@ -160,7 +161,7 @@ $i18n = @{
         MenuSwitch  = 'Change language / role'
         UpdateCheck = 'Checking for updates...'
         UpdateFound = 'New version {0} available (you have {1}). Update now? [y/N]'
-        UpdateWhatsNew = 'WHAT''S NEW in {0} (notes are in Vietnamese):'
+        UpdateWhatsNew = 'WHAT''S NEW in {0}:'
         UpdateMoreNotes = '... and {0} more lines - full notes: CHANGELOG.md on GitHub'
         UpdateDone  = 'Updated successfully - restarting...'
         UpdateFail  = 'Update failed: {0} - continuing with current version.'
@@ -186,7 +187,7 @@ $i18n = @{
         DlNothing   = 'No loose files to organize.'
         DlDone      = 'Organized {0} files. Undo: {1}'
         ReportSaved = 'HTML report: {0}'
-        NoteVi      = 'Note: technical report details are currently in Vietnamese.'
+        NoteVi      = 'Note: technical report details are in English.'
     }
     zh = @{
         ChooseLang  = 'Chọn ngôn ngữ / Choose language / 选择语言 / Выберите язык:'
@@ -227,7 +228,7 @@ $i18n = @{
         MenuSwitch  = '更改语言 / 角色'
         UpdateCheck = '正在检查更新...'
         UpdateFound = '发现新版本 {0}（当前 {1}）。立即更新？[y/N]'
-        UpdateWhatsNew = '{0} 版本更新内容（越南语）：'
+        UpdateWhatsNew = '{0} 版本更新内容（英语）：'
         UpdateMoreNotes = '... 还有 {0} 行 - 完整内容见 GitHub 上的 CHANGELOG.md'
         UpdateDone  = '更新成功 - 正在重新启动...'
         UpdateFail  = '更新失败：{0} - 继续使用当前版本。'
@@ -253,7 +254,7 @@ $i18n = @{
         DlNothing   = '没有需要整理的零散文件。'
         DlDone      = '已整理 {0} 个文件。撤销：{1}'
         ReportSaved = 'HTML 报告：{0}'
-        NoteVi      = '注：报告的技术细节目前为越南语。'
+        NoteVi      = '注：报告的技术细节为英语。'
     }
     ru = @{
         ChooseLang  = 'Chọn ngôn ngữ / Choose language / 选择语言 / Выберите язык:'
@@ -294,7 +295,7 @@ $i18n = @{
         MenuSwitch  = 'Сменить язык / роль'
         UpdateCheck = 'Проверка обновлений...'
         UpdateFound = 'Доступна новая версия {0} (у вас {1}). Обновить сейчас? [y/N]'
-        UpdateWhatsNew = 'ЧТО НОВОГО в версии {0} (описание на вьетнамском):'
+        UpdateWhatsNew = 'ЧТО НОВОГО в версии {0} (описание на английском):'
         UpdateMoreNotes = '... и ещё {0} строк - полный список: CHANGELOG.md на GitHub'
         UpdateDone  = 'Обновление выполнено - перезапуск...'
         UpdateFail  = 'Ошибка обновления: {0} - продолжаем с текущей версией.'
@@ -320,7 +321,7 @@ $i18n = @{
         DlNothing   = 'Нет файлов для организации.'
         DlDone      = 'Организовано файлов: {0}. Откат: {1}'
         ReportSaved = 'HTML-отчёт: {0}'
-        NoteVi      = 'Примечание: технические детали отчёта пока на вьетнамском.'
+        NoteVi      = 'Примечание: технические детали отчёта на английском.'
     }
 }
 
@@ -337,9 +338,9 @@ function Get-SpinFrame {
     return $frames[$script:spinIdx % $frames.Count]
 }
 
-# Terminal hiện đại (Windows Terminal, ConEmu, PS7...) hỗ trợ true-color ANSI:
-# dùng RGB thật để màu KHÔNG bị theme remap (tránh tích xanh hóa... tím).
-# Console cũ fallback về ConsoleColor thường.
+# Modern terminals (Windows Terminal, ConEmu, PS7...) support true-color ANSI:
+# use real RGB so colors are NOT remapped by the theme (no green checkmarks
+# turning... purple). Old consoles fall back to plain ConsoleColor.
 $script:ansiOk = [bool]($env:WT_SESSION -or $env:TERM_PROGRAM -or ($env:ConEmuANSI -eq 'ON') -or $PSVersionTable.PSVersion.Major -ge 7)
 $script:trueColors = @{
     'Green'    = '0;200;83'
@@ -362,7 +363,7 @@ function Get-SeverityColor {
 }
 
 function Write-C {
-    # Write-Host có màu: true-color ANSI nếu terminal hỗ trợ, ngược lại ConsoleColor
+    # Colored Write-Host: true-color ANSI when the terminal supports it, else ConsoleColor
     param([string]$Text, [ConsoleColor]$Color = [ConsoleColor]::Gray, [switch]$NoNewline)
     $colorName = [string]$Color
     if ($script:ansiOk -and $script:trueColors.ContainsKey($colorName)) {
@@ -374,7 +375,7 @@ function Write-C {
 }
 
 function Show-Banner {
-    # Banner ASCII chữ to HASOFTWARE - hiển thị khi khởi động
+    # Big ASCII HASOFTWARE banner - shown at startup
     param([string]$Tagline = '')
     $redirected = $false
     try { $redirected = [Console]::IsOutputRedirected } catch {}
@@ -383,7 +384,7 @@ function Show-Banner {
         if ($Tagline) { Write-Host $Tagline }
         return
     }
-    # Font khối 5 dòng, mỗi chữ 5 cột - ghép bằng code để không sai pixel
+    # 5-row block font, 5 columns per glyph - assembled in code so no pixel is off
     $glyphs = @{
         'H' = @('#   #', '#   #', '#####', '#   #', '#   #')
         'A' = @(' ### ', '#   #', '#####', '#   #', '#   #')
@@ -402,8 +403,8 @@ function Show-Banner {
         foreach ($ch in $text.ToCharArray()) {
             $line += $glyphs[[string]$ch][$row] + ' '
         }
-        $line = $line.Replace('#', [string][char]0x2588)   # khối đặc █
-        # Gradient cyan -> xanh lá theo từng dòng
+        $line = $line.Replace('#', [string][char]0x2588)   # solid block █
+        # Cyan -> green gradient per row
         $rgb = switch ($row) {
             0 { '0;229;255' } 1 { '0;216;212' } 2 { '0;204;170' } 3 { '0;202;125' } default { '0;200;83' }
         }
@@ -422,9 +423,9 @@ function Show-Banner {
 }
 
 function Write-StatusLine {
-    # In dòng trạng thái đè tại chỗ (kiểu npm/cargo) - KHÔNG dùng Write-Progress
-    # -Persist: dòng chốt (giữ lại + xuống dòng). Khi output bị redirect (pipeline/CI):
-    # các frame spinner bị bỏ qua, chỉ in dòng chốt để log sạch.
+    # Print an in-place status line (npm/cargo style) - does NOT use Write-Progress
+    # -Persist: final line (kept + newline). When output is redirected (pipeline/CI):
+    # spinner frames are skipped, only final lines are printed to keep logs clean.
     param([string]$Text, [ConsoleColor]$Color = [ConsoleColor]::DarkGray, [switch]$Persist)
     $redirected = $false
     try { $redirected = [Console]::IsOutputRedirected } catch {}
@@ -440,12 +441,12 @@ function Write-StatusLine {
     if ($Persist) { Write-Host '' }
 }
 
-$script:scanStatus = $null        # hashtable đồng bộ chia sẻ với luồng spinner nền
-$script:activeSpinner = $null     # handle spinner đang chạy (để dọn khi có sự cố)
+$script:scanStatus = $null        # synchronized hashtable shared with the background spinner thread
+$script:activeSpinner = $null     # currently running spinner handle (for cleanup on failure)
 
 function Clear-Screen {
-    # Xóa TRIỆT ĐỂ màn hình: viewport + scrollback (ESC[3J) + đưa con trỏ về (0,0).
-    # Clear-Host thường chỉ xóa viewport -> đuôi log cũ vẫn lộ ra khi vẽ đè.
+    # Clear the screen COMPLETELY: viewport + scrollback (ESC[3J) + cursor to (0,0).
+    # Clear-Host usually clears only the viewport -> old log tails leak through redraws.
     if ($script:ansiOk) {
         $e = [char]27
         [Console]::Write("$e[2J$e[3J$e[H")
@@ -455,20 +456,21 @@ function Clear-Screen {
 }
 
 function Clear-PendingInput {
-    # Nuốt các phím bấm thừa còn nằm trong buffer (Enter bấm liên tục khi đang dọn...)
-    # để chúng không "tự trả lời" các prompt kế tiếp làm nhảy màn hình
+    # Swallow stray keypresses left in the buffer (Enter mashed during cleanup...)
+    # so they don't "auto-answer" the next prompts and make the screen jump
     try { while ([Console]::KeyAvailable) { [void][Console]::ReadKey($true) } } catch {}
 }
 
 function Start-ScanSpinner {
-    <# Spinner chạy trên RUNSPACE NỀN riêng - quay đều 80ms/frame kể cả khi
-       luồng chính đang bận quét (hết cảnh spinner đứng hình ở module lâu).
-       Luồng nền là NGƯỜI GHI DUY NHẤT của dòng trạng thái; luồng chính chỉ
-       cập nhật text qua hashtable đồng bộ. Trả về handle để Stop. #>
+    <# Spinner running on its own BACKGROUND RUNSPACE - spins steadily at
+       80ms/frame even while the main thread is busy scanning (no more frozen
+       spinner on slow modules). The background thread is the SOLE WRITER of
+       the status line; the main thread only updates text through the
+       synchronized hashtable. Returns a handle for Stop. #>
     param([string]$Text)
     $redirected = $false
     try { $redirected = [Console]::IsOutputRedirected } catch {}
-    if ($redirected) { return $null }   # pipeline/CI: không animation
+    if ($redirected) { return $null }   # pipeline/CI: no animation
 
     $hash = [hashtable]::Synchronized(@{ Active = $true; Text = $Text; Prefix = $Text; Suspend = $false; Suspended = $false })
     $script:scanStatus = $hash
@@ -482,8 +484,8 @@ function Start-ScanSpinner {
         $e = [char]27
         $i = 0
         while ($h.Active) {
-            # Handshake "tạm ngưng": luồng chính cần in dòng kết quả -> spinner
-            # tự xóa dòng của mình, báo Suspended rồi đứng chờ (không ghi gì)
+            # "Pause" handshake: the main thread needs to print a result line ->
+            # the spinner erases its own line, signals Suspended, then waits (writes nothing)
             if ($h.Suspend) {
                 if (-not $h.Suspended) {
                     [Console]::Write("`r" + (' ' * $width) + "`r")
@@ -501,7 +503,7 @@ function Start-ScanSpinner {
             $i++
             Start-Sleep -Milliseconds 80
         }
-        # Tự dọn dòng của mình trước khi kết thúc -> không race với luồng chính
+        # Erase its own line before exiting -> no race with the main thread
         [Console]::Write("`r" + (' ' * $width) + "`r")
     }).AddArgument($hash).AddArgument($width).AddArgument($script:ansiOk)
     $async = $ps.BeginInvoke()
@@ -516,21 +518,21 @@ function Stop-ScanSpinner {
     $script:activeSpinner = $null
     if ($null -eq $Handle) { return }
     $Handle.Hash.Active = $false
-    # Chờ luồng nền vẽ xong frame cuối + tự xóa dòng rồi mới trả quyền ghi console
+    # Wait for the background thread to finish its last frame + erase its line before returning console ownership
     [void]$Handle.Async.AsyncWaitHandle.WaitOne(1000)
     try { $Handle.PS.EndInvoke($Handle.Async) } catch {}
     $Handle.PS.Dispose()
 }
 
 function Stop-LeakedSpinner {
-    # Lưới an toàn: nếu spinner nền còn sống sót (module ném lỗi giữa chừng...)
-    # thì dập nó trước khi vẽ màn hình mới - tránh 2 luồng ghi console chồng nhau
+    # Safety net: if a background spinner survived (module threw mid-way...)
+    # kill it before drawing a new screen - avoids two threads writing to the console
     if ($script:activeSpinner) { Stop-ScanSpinner -Handle $script:activeSpinner }
 }
 
 function Invoke-WithSpinnerPaused {
-    # In output qua "cửa sổ nhường": yêu cầu spinner nền tạm ngưng + xóa dòng,
-    # chờ nó xác nhận, chạy $Body (in các dòng persist), rồi cho spinner chạy tiếp
+    # Print output through a "yield window": ask the background spinner to pause + erase
+    # its line, wait for its ack, run $Body (print persist lines), then resume the spinner
     param($Handle, [scriptblock]$Body)
     if ($null -eq $Handle) { & $Body; return }
     $Handle.Hash.Suspend = $true
@@ -540,7 +542,7 @@ function Invoke-WithSpinnerPaused {
 }
 
 function Show-Spinner {
-    # Spinner ngắn mang tính khởi động (cosmetic)
+    # Short startup spinner (cosmetic)
     param([string]$Label, [int]$Cycles = 8)
     $frames = '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'
     for ($n = 0; $n -lt $Cycles; $n++) {
@@ -553,7 +555,7 @@ function Show-Spinner {
 }
 
 function Invoke-WithSpinner {
-    # Chạy lệnh ngoài (npm/npx) với spinner động; output ghi ra file log
+    # Run an external command (npm/npx) with an animated spinner; output goes to a log file
     param([string]$CommandLine, [string]$Label, [string]$LogFile)
     $frames = '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'
     $proc = Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c ' + $CommandLine + ' > "' + $LogFile + '" 2>&1') -PassThru -WindowStyle Hidden
@@ -568,14 +570,14 @@ function Invoke-WithSpinner {
 }
 
 function Show-CheckboxMenu {
-    <# Danh sách checkbox tương tác: trả về mảng index các mục được chọn.
-       ↑/↓ di chuyển, Space chọn, A chọn hết, N bỏ hết, Enter xác nhận, Esc hủy #>
+    <# Interactive checkbox list: returns an array of selected item indexes.
+       ↑/↓ move, Space toggle, A select all, N select none, Enter confirm, Esc cancel #>
     param(
         [string[]]$Labels,
         [string]$Title,
         [string]$Help,
-        [string[]]$Severities,   # tùy chọn: cột mức độ tô màu (High đỏ / Medium vàng / Info xanh dương)
-        [switch]$AllowIgnore     # cho phép phím I: ẩn mục vĩnh viễn (ghi vào wintrash.ignore.json)
+        [string[]]$Severities,   # optional: colored severity column (High red / Medium yellow / Info blue)
+        [switch]$AllowIgnore     # enable the I key: hide an item forever (written to wintrash.ignore.json)
     )
     $script:pickerIgnored = @()
     if (-not (Test-Interactive)) { return $null }
@@ -585,7 +587,7 @@ function Show-CheckboxMenu {
     $checked = New-Object bool[] $count
     $ignoredFlag = New-Object bool[] $count
     $hasSev = ($null -ne $Severities -and $Severities.Count -eq $count)
-    $sevFilters = @($null, 'High', 'Medium', 'Info')   # phím F xoay vòng
+    $sevFilters = @($null, 'High', 'Medium', 'Info')   # F key cycles through
     $filterIdx = 0
     $cursor = 0
     $offset = 0
@@ -593,7 +595,7 @@ function Show-CheckboxMenu {
     $width = [Console]::WindowWidth - 1
     $sevColWidth = if ($hasSev) { 7 } else { 0 }   # 'Medium' + 1 space
 
-    # ---- Các hàm vẽ cục bộ: KHÔNG BAO GIỜ xuống dòng -> không bao giờ cuộn màn hình ----
+    # ---- Local draw functions: NEVER emit a newline -> the screen never scrolls ----
     function Get-PickerView {
         $filter = $sevFilters[$filterIdx]
         $v = [System.Collections.Generic.List[int]]::new()
@@ -650,8 +652,8 @@ function Show-CheckboxMenu {
     Write-Host ''
     Write-Host $Title -ForegroundColor Cyan
     Write-Host $Help -ForegroundColor DarkGray
-    # Dành sẵn vùng vẽ cố định (cuộn buffer đúng MỘT lần tại đây) - từ đó về sau
-    # mọi thao tác chỉ vẽ đè tại chỗ, màn hình đứng yên tuyệt đối
+    # Reserve a fixed drawing area (the buffer scrolls exactly ONCE, here) - from
+    # then on everything redraws in place and the screen stays perfectly still
     for ($r = 0; $r -le $winH; $r++) { Write-Host '' }
     $top = [Console]::CursorTop - ($winH + 1)
 
@@ -659,7 +661,7 @@ function Show-CheckboxMenu {
     $prevCursorVisible = $true
     try { $prevCursorVisible = [Console]::CursorVisible } catch {}
     try {
-        try { [Console]::CursorVisible = $false } catch {}   # ẩn con trỏ nháy khi tương tác
+        try { [Console]::CursorVisible = $false } catch {}   # hide the blinking cursor while interacting
         Draw-PickerAll
 
         while ($true) {
@@ -702,8 +704,8 @@ function Show-CheckboxMenu {
                         if ($ignoredFlag[$j]) { $ign.Add($j) }
                     }
                     $script:pickerIgnored = $ign.ToArray()
-                    # Bọc dấu phẩy: mảng RỖNG trả thẳng sẽ bị pipeline unwrap thành $null
-                    # -> caller nhầm với sentinel "console không tương tác" (return $null ở trên)
+                    # Comma-wrap: a bare EMPTY array gets pipeline-unwrapped into $null
+                    # -> caller confuses it with the "non-interactive console" sentinel (return $null above)
                     return , $result.ToArray()
                 }
                 'Escape'    {
@@ -720,7 +722,7 @@ function Show-CheckboxMenu {
                 if ($cursor -ge $view.Count) { $cursor = [Math]::Max(0, $view.Count - 1) }
                 $needFull = $true
             }
-            # Cuộn cửa sổ khi con trỏ chạm mép -> phải vẽ lại cả khung
+            # Scroll the window when the cursor hits an edge -> full redraw required
             if ($view.Count -gt 0) {
                 if ($cursor -lt $offset) { $offset = $cursor; $needFull = $true }
                 elseif ($cursor -ge $offset + $winH) { $offset = $cursor - $winH + 1; $needFull = $true }
@@ -729,11 +731,11 @@ function Show-CheckboxMenu {
             if ($needFull) {
                 Draw-PickerAll
             } elseif ($touchRow) {
-                # Space: chỉ vẽ lại đúng 1 dòng + thanh trạng thái
+                # Space: redraw exactly 1 row + the status bar
                 Draw-PickerRow -RowVisual ($cursor - $offset)
                 Draw-PickerStatus
             } elseif ($cursor -ne $oldCursor) {
-                # Di chuyển trong cùng trang: chỉ vẽ lại 2 dòng (cũ + mới)
+                # Movement within the same page: redraw only 2 rows (old + new)
                 Draw-PickerRow -RowVisual ($oldCursor - $offset)
                 Draw-PickerRow -RowVisual ($cursor - $offset)
                 Draw-PickerStatus
@@ -793,8 +795,8 @@ function Resolve-CommandPath {
     $candidate = ''
     foreach ($tok in $tokens) {
         $candidate = if ($candidate) { "$candidate $tok" } else { $tok }
-        # Gặp ký tự không hợp lệ trong đường dẫn (vd: nháy kép giữa lệnh cmd /c "...")
-        # thì dừng ghép - phần sau chắc chắn là tham số, không phải đường dẫn
+        # Hitting an invalid path character (e.g. a quote inside cmd /c "...")
+        # stops the join - whatever follows is definitely arguments, not a path
         if ($candidate.IndexOfAny($invalidChars) -ge 0) { break }
         if (Test-Path -LiteralPath $candidate -PathType Leaf -ErrorAction SilentlyContinue) { return $candidate }
         if (Test-Path -LiteralPath "$candidate.exe" -PathType Leaf -ErrorAction SilentlyContinue) { return "$candidate.exe" }
@@ -833,7 +835,7 @@ function Get-DirSizeMB {
 }
 
 function ConvertTo-RegExePath {
-    # 'HKLM:\SOFTWARE\X' hoặc 'Registry::HKEY_LOCAL_MACHINE\...' -> dạng reg.exe hiểu được
+    # 'HKLM:\SOFTWARE\X' or 'Registry::HKEY_LOCAL_MACHINE\...' -> a form reg.exe understands
     param([string]$PSPath)
     $p = $PSPath -replace '^Microsoft\.PowerShell\.Core\\Registry::', '' -replace '^Registry::', ''
     $p = $p -replace '^HKLM:\\', 'HKEY_LOCAL_MACHINE\' -replace '^HKCU:\\', 'HKEY_CURRENT_USER\'
@@ -901,10 +903,10 @@ function Test-NameMatchesInstalledApp {
 #             Service | Task | Firewall | DefenderPath | DefenderProcess
 
 $script:findings = [System.Collections.Generic.List[object]]::new()
-$script:otherUserProfiles = @()   # hồ sơ user khác được duyệt quét (multi-user, cần admin)
+$script:otherUserProfiles = @()   # other user profiles approved for scanning (multi-user, requires admin)
 
 function Get-OtherUserProfiles {
-    # Liệt kê hồ sơ user KHÁC trên máy (trừ user hiện tại, hồ sơ hệ thống/Default)
+    # List OTHER user profiles on the machine (excluding current user, system/Default profiles)
     $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $result = [System.Collections.Generic.List[object]]::new()
     foreach ($p in (Get-CimInstance Win32_UserProfile -ErrorAction SilentlyContinue)) {
@@ -915,27 +917,27 @@ function Get-OtherUserProfiles {
             Sid    = $p.SID
             Path   = $p.LocalPath
             Name   = (Split-Path $p.LocalPath -Leaf)
-            Loaded = [bool]$p.Loaded   # hive registry đang nạp (user đang đăng nhập)
+            Loaded = [bool]$p.Loaded   # registry hive is loaded (user is logged in)
         })
     }
     return $result.ToArray()
 }
 
-$script:offlineMount = 'WinTrash_Offline'   # điểm gắn tạm trong HKEY_USERS cho hive offline
+$script:offlineMount = 'WinTrash_Offline'   # temporary mount point in HKEY_USERS for offline hives
 
 function Invoke-WithOfflineHive {
-    <# Nạp NTUSER.DAT của user offline vào HKU\WinTrash_Offline, chạy $Body,
-       rồi LUÔN unload (kể cả khi lỗi). Trả về $null nếu không nạp được
-       (hive đang bị khóa - user vừa đăng nhập chẳng hạn). #>
+    <# Load an offline user's NTUSER.DAT into HKU\WinTrash_Offline, run $Body,
+       then ALWAYS unload (even on error). Returns $null when the hive can't be
+       loaded (locked - e.g. the user just logged in). #>
     param([string]$HivePath, [scriptblock]$Body)
-    # NTUSER.DAT của user khác: non-admin bị từ chối cả quyền đọc -> im lặng bỏ qua
+    # Another user's NTUSER.DAT: non-admin is denied even read access -> skip silently
     if (-not (Test-Path -LiteralPath $HivePath -ErrorAction SilentlyContinue)) { return $null }
     & reg.exe load "HKU\$script:offlineMount" $HivePath 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) { return $null }
     try {
         return & $Body
     } finally {
-        # .NET giữ handle registry -> phải GC trước khi unload mới thành công
+        # .NET keeps registry handles alive -> must GC before unload can succeed
         [gc]::Collect()
         [gc]::WaitForPendingFinalizers()
         & reg.exe unload "HKU\$script:offlineMount" 2>$null | Out-Null
@@ -943,7 +945,7 @@ function Invoke-WithOfflineHive {
 }
 
 function Read-OfflineRunKeys {
-    # Đọc Run/RunOnce từ hive offline của một profile - trả về mảng entry
+    # Read Run/RunOnce from a profile's offline hive - returns an array of entries
     param([string]$ProfilePath)
     $hive = Join-Path $ProfilePath 'NTUSER.DAT'
     $result = Invoke-WithOfflineHive -HivePath $hive -Body {
@@ -969,8 +971,8 @@ function Read-OfflineRunKeys {
 }
 
 function Request-MultiUserScan {
-    # Chạy admin + máy có user khác -> hỏi có quét cả hồ sơ của họ không.
-    # -Auto: không hỏi, bật luôn (dùng cho clean-resume để khớp danh sách đã chọn)
+    # Running as admin + machine has other users -> ask whether to scan their profiles too.
+    # -Auto: don't ask, enable directly (used by clean-resume to match the saved selection)
     param([hashtable]$L, [switch]$Auto)
     $script:otherUserProfiles = @()
     if (-not (Test-IsAdmin)) { return }
@@ -988,7 +990,7 @@ function Request-MultiUserScan {
 }
 
 function Get-FindingId {
-    # ID ổn định của một phát hiện - dùng cho ignore list và so sánh giữa các lần quét
+    # Stable ID for a finding - used by the ignore list and scan-to-scan comparison
     param($Finding)
     return '{0}|{1}|{2}' -f $Finding.Category, $Finding.Name, $Finding.Target
 }
@@ -1007,7 +1009,7 @@ function Add-ToIgnoreList {
 }
 
 function Save-ScanHistoryAndDiff {
-    # Lưu snapshot lần quét này + so sánh với lần trước (mục mới / mục biến mất)
+    # Save a snapshot of this scan + compare with the previous one (new / disappeared items)
     param([hashtable]$L)
     $histDir = Join-Path $PSScriptRoot 'ScanHistory'
     if (-not (Test-Path -LiteralPath $histDir)) { New-Item -ItemType Directory -Path $histDir -Force | Out-Null }
@@ -1028,7 +1030,7 @@ function Save-ScanHistoryAndDiff {
             foreach ($newId in ($newIds | Select-Object -First 10)) {
                 Write-Host ("    + {0}" -f $newId) -ForegroundColor DarkYellow
             }
-            if ($newIds.Count -gt 10) { Write-Host ("    ... và {0} mục nữa" -f ($newIds.Count - 10)) -ForegroundColor DarkGray }
+            if ($newIds.Count -gt 10) { Write-Host ("    ... and {0} more" -f ($newIds.Count - 10)) -ForegroundColor DarkGray }
         } catch {}
     } else {
         Write-Host ''
@@ -1039,7 +1041,7 @@ function Save-ScanHistoryAndDiff {
     $snapshot = @{ Date = (Get-Date -Format 'yyyy-MM-dd HH:mm'); Ids = $currentIds }
     $snapFile = Join-Path $histDir ("scan_{0}.json" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
     $snapshot | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $snapFile -Encoding UTF8
-    # Giữ tối đa 12 bản gần nhất
+    # Keep at most the 12 most recent snapshots
     Get-ChildItem -LiteralPath $histDir -Filter 'scan_*.json' | Sort-Object Name -Descending |
         Select-Object -Skip 12 | Remove-Item -Force -ErrorAction SilentlyContinue
 }
@@ -1057,7 +1059,7 @@ function Add-Finding {
     })
 }
 
-# ════════════════════════ 18 MODULE QUÉT ════════════════════════
+# ════════════════════════ 18 SCAN MODULES ════════════════════════
 
 function Invoke-ScanPath {
     foreach ($scope in 'Machine', 'User') {
@@ -1071,16 +1073,16 @@ function Invoke-ScanPath {
             $pos++
             $rd = @{ Scope = $scope; Position = $pos }
             if ([string]::IsNullOrWhiteSpace($entry)) {
-                Add-Finding -Category 'Path' -Name "$scope #$pos" -Target '<rỗng>' -Detail 'Mục rỗng (thừa dấu ;)' -RemoveKind 'PathEntry' -RemoveData $rd
+                Add-Finding -Category 'Path' -Name "$scope #$pos" -Target '<empty>' -Detail 'Empty entry (stray ;)' -RemoveKind 'PathEntry' -RemoveData $rd
                 continue
             }
             $expanded = [Environment]::ExpandEnvironmentVariables($entry.Trim().Trim('"'))
             $norm = $expanded.TrimEnd('\', '/').ToLowerInvariant()
             if ($seen.ContainsKey($norm)) {
-                Add-Finding -Category 'Path' -Name "$scope #$pos" -Target $entry.Trim() -Detail "Trùng lặp với mục #$($seen[$norm])" -RemoveKind 'PathEntry' -RemoveData $rd
+                Add-Finding -Category 'Path' -Name "$scope #$pos" -Target $entry.Trim() -Detail "Duplicate of entry #$($seen[$norm])" -RemoveKind 'PathEntry' -RemoveData $rd
             } else { $seen[$norm] = $pos }
             if (-not (Test-Path -LiteralPath $expanded)) {
-                Add-Finding -Category 'Path' -Name "$scope #$pos" -Target $entry.Trim() -Detail 'Thư mục không tồn tại' -RemoveKind 'PathEntry' -RemoveData $rd
+                Add-Finding -Category 'Path' -Name "$scope #$pos" -Target $entry.Trim() -Detail 'Directory does not exist' -RemoveKind 'PathEntry' -RemoveData $rd
             }
         }
     }
@@ -1100,7 +1102,7 @@ function Invoke-ScanEnvVars {
                 if ($value -notmatch '^[A-Za-z]:\\' -or $value.Contains(';')) { continue }
                 $expanded = [Environment]::ExpandEnvironmentVariables($value)
                 if (-not (Test-Path -LiteralPath $expanded)) {
-                    Add-Finding -Category 'EnvVars' -Name "$($loc.Scope): $name" -Target $value -Detail 'Biến trỏ vào đường dẫn không tồn tại' `
+                    Add-Finding -Category 'EnvVars' -Name "$($loc.Scope): $name" -Target $value -Detail 'Variable points to a non-existent path' `
                         -RemoveKind 'RegValue' -RemoveData @{ PSPath = ("{0}:\{1}" -f $loc.Hive, $loc.SubKey); Value = $name }
                 }
             }
@@ -1119,7 +1121,7 @@ function Invoke-ScanFolders {
         'Start Menu', 'Desktop', 'Templates', 'CanonicalGroupLimited',
         'PackageManagement', 'GroupPolicy', 'dotnet', 'IsolatedStorage',
         'AMD', 'NVIDIA', 'NVIDIA Corporation', 'Intel', 'InstallShield',
-        'Docker', 'DockerDesktop', 'Docker Desktop'   # module Docker chuyên trách - tránh trùng finding + đếm đôi MB
+        'Docker', 'DockerDesktop', 'Docker Desktop'   # handled by the dedicated Docker module - avoids duplicate findings + double-counted MB
     )
     $fp = Get-AppFingerprint
     $scanRoots = [System.Collections.Generic.List[object]]::new()
@@ -1128,7 +1130,7 @@ function Invoke-ScanFolders {
     $scanRoots.Add(@{ Label = 'LocalLow';      Path = (Join-Path (Split-Path $env:LOCALAPPDATA -Parent) 'LocalLow') })
     $scanRoots.Add(@{ Label = 'LocalPrograms'; Path = (Join-Path $env:LOCALAPPDATA 'Programs') })
     $scanRoots.Add(@{ Label = 'ProgramData';   Path = $env:ProgramData })
-    # Multi-user (admin đã duyệt): quét thêm AppData của từng user khác
+    # Multi-user (admin approved): also scan each other user's AppData
     foreach ($up in $script:otherUserProfiles) {
         $scanRoots.Add(@{ Label = "[$($up.Name)] Roaming";       Path = (Join-Path $up.Path 'AppData\Roaming') })
         $scanRoots.Add(@{ Label = "[$($up.Name)] Local";         Path = (Join-Path $up.Path 'AppData\Local') })
@@ -1142,7 +1144,7 @@ function Invoke-ScanFolders {
         $fi = 0
         foreach ($folder in $folders) {
             $fi++
-            # Cập nhật text cho spinner nền (không tự ghi console -> không tranh chấp)
+            # Update the background spinner text (doesn't write to the console itself -> no contention)
             if ($script:scanStatus) {
                 $script:scanStatus.Text = ('{0} › {1} ({2}/{3}): {4}' -f $script:scanStatus.Prefix, $rootInfo.Label, $fi, $folders.Count, $folder.Name)
             }
@@ -1159,7 +1161,7 @@ function Invoke-ScanFolders {
 
             $files = @(Get-ChildItem -LiteralPath $folder.FullName -Recurse -File -Force -ErrorAction SilentlyContinue)
             if ($files.Count -eq 0) {
-                Add-Finding -Category 'Folders' -Name $folder.Name -Target $folder.FullName -Detail 'Thư mục rỗng hoàn toàn' -Severity 'Info' `
+                Add-Finding -Category 'Folders' -Name $folder.Name -Target $folder.FullName -Detail 'Completely empty folder' -Severity 'Info' `
                     -RemoveKind 'RecycleDir' -RemoveData @{ Path = $folder.FullName }
                 continue
             }
@@ -1172,7 +1174,7 @@ function Invoke-ScanFolders {
             }
             if ($lastUsed -lt $staleCutoff) {
                 Add-Finding -Category 'Folders' -Name $folder.Name -Target $folder.FullName `
-                    -Detail ("Không khớp app nào; không dùng từ {0}" -f $lastUsed.ToString('yyyy-MM-dd')) -Severity 'Medium' -SizeMB $sizeMB `
+                    -Detail ("Matches no installed app; unused since {0}" -f $lastUsed.ToString('yyyy-MM-dd')) -Severity 'Medium' -SizeMB $sizeMB `
                     -RemoveKind 'RecycleDir' -RemoveData @{ Path = $folder.FullName }
             }
         }
@@ -1185,7 +1187,7 @@ function Invoke-ScanServices {
         $exe = Resolve-CommandPath -CommandLine $svc.PathName
         if ($exe -and (Test-ExeMissing -ExePath $exe)) {
             Add-Finding -Category 'Services' -Name $svc.Name -Target $exe `
-                -Detail ("File service đã mất ({0} / {1})" -f $svc.StartMode, $svc.State) `
+                -Detail ("Service binary is gone ({0} / {1})" -f $svc.StartMode, $svc.State) `
                 -RemoveKind 'Service' -RemoveData @{ Name = $svc.Name }
         }
     }
@@ -1207,15 +1209,15 @@ function Invoke-ScanStartup {
             if ($prop.Name -in 'PSPath', 'PSParentPath', 'PSChildName', 'PSDrive', 'PSProvider') { continue }
             $exe = Resolve-CommandPath -CommandLine ([string]$prop.Value)
             if ($exe -and (Test-ExeMissing -ExePath $exe)) {
-                Add-Finding -Category 'Startup' -Name $prop.Name -Target $exe -Detail "Run-key tại $key" `
+                Add-Finding -Category 'Startup' -Name $prop.Name -Target $exe -Detail "Run key at $key" `
                     -RemoveKind 'RegValue' -RemoveData @{ PSPath = $key; Value = $prop.Name }
             }
         }
     }
-    # Multi-user: Run/RunOnce của các user KHÁC
+    # Multi-user: Run/RunOnce of OTHER users
     foreach ($up in $script:otherUserProfiles) {
         if ($up.Loaded) {
-            # User đang đăng nhập: hive có sẵn trong HKEY_USERS
+            # User is logged in: hive is already available in HKEY_USERS
             foreach ($suffix in 'Run', 'RunOnce') {
                 $hkuKey = "Registry::HKEY_USERS\$($up.Sid)\SOFTWARE\Microsoft\Windows\CurrentVersion\$suffix"
                 if (-not (Test-Path $hkuKey)) { continue }
@@ -1225,20 +1227,20 @@ function Invoke-ScanStartup {
                     $exe = Resolve-CommandPath -CommandLine ([string]$prop.Value)
                     if ($exe -and (Test-ExeMissing -ExePath $exe)) {
                         Add-Finding -Category 'Startup' -Name ("[{0}] {1}" -f $up.Name, $prop.Name) -Target $exe `
-                            -Detail "Run-key của user $($up.Name)" `
+                            -Detail "Run key of user $($up.Name)" `
                             -RemoveKind 'RegValue' -RemoveData @{ PSPath = $hkuKey; Value = $prop.Name }
                     }
                 }
             }
         } else {
-            # User OFFLINE: nạp tạm NTUSER.DAT (reg load), đọc xong NHẢ NGAY.
-            # Hive đang bị khóa (user vừa đăng nhập / process giữ) -> bỏ qua êm.
+            # OFFLINE user: temporarily load NTUSER.DAT (reg load), UNLOAD RIGHT after reading.
+            # Hive locked (user just logged in / held by a process) -> skip quietly.
             $entries = Read-OfflineRunKeys -ProfilePath $up.Path
             foreach ($entry in $entries) {
                 $exe = Resolve-CommandPath -CommandLine $entry.Command
                 if ($exe -and (Test-ExeMissing -ExePath $exe)) {
                     Add-Finding -Category 'Startup' -Name ("[{0}] {1}" -f $up.Name, $entry.Value) -Target $exe `
-                        -Detail ("Run-key của user {0} (hive offline)" -f $up.Name) `
+                        -Detail ("Run key of user {0} (offline hive)" -f $up.Name) `
                         -RemoveKind 'OfflineRegValue' `
                         -RemoveData @{ Hive = (Join-Path $up.Path 'NTUSER.DAT'); SubKey = $entry.SubKey; Value = $entry.Value }
                 }
@@ -1260,7 +1262,7 @@ function Invoke-ScanStartup {
             try {
                 $target = $shell.CreateShortcut($item.FullName).TargetPath
                 if ($target -and (Test-ExeMissing -ExePath $target)) {
-                    Add-Finding -Category 'Startup' -Name $item.Name -Target $target -Detail "Shortcut startup tại $dir" `
+                    Add-Finding -Category 'Startup' -Name $item.Name -Target $target -Detail "Startup shortcut at $dir" `
                         -RemoveKind 'RecycleFile' -RemoveData @{ Path = $item.FullName }
                 }
             } catch {}
@@ -1297,16 +1299,16 @@ function Invoke-ScanUninstall {
         if ($exe -and (Test-ExeMissing -ExePath $exe)) {
             $psPath = $app.PSPath -replace '^Microsoft\.PowerShell\.Core\\', ''
             Add-Finding -Category 'Uninstall' -Name $app.DisplayName -Target $exe `
-                -Detail 'Uninstaller đã mất - mục ma trong Add/Remove Programs' `
+                -Detail 'Uninstaller is gone - ghost entry in Add/Remove Programs' `
                 -RemoveKind 'RegKey' -RemoveData @{ PSPath = $psPath }
         }
     }
 }
 
 function Invoke-ScanAppPaths {
-    # Gộp các bản "song sinh" giữa view 64-bit và WOW6432Node (nhiều key App Paths
-    # là bản chiếu của nhau - xóa bản này bản kia biến mất theo): mỗi cặp
-    # (tên key + exe đích) chỉ ra MỘT finding, khi xóa sẽ quét cả các view
+    # Merge "twin" entries between the 64-bit and WOW6432Node views (many App Paths
+    # keys are reflections of each other - deleting one makes the other vanish): each
+    # (key name + target exe) pair yields ONE finding; removal sweeps all views
     $merged = [ordered]@{}
     foreach ($base in @(
         'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths',
@@ -1332,7 +1334,7 @@ function Invoke-ScanAppPaths {
     }
     foreach ($m in $merged.Values) {
         Add-Finding -Category 'AppPaths' -Name $m.Name -Target $m.Target `
-            -Detail ("App Path chết ({0} view registry)" -f $m.Paths.Count) `
+            -Detail ("Dead App Path ({0} registry view(s))" -f $m.Paths.Count) `
             -RemoveKind 'RegKeyMulti' -RemoveData @{ Paths = $m.Paths.ToArray() }
     }
 }
@@ -1344,7 +1346,7 @@ function Invoke-ScanShortcuts {
     $dirs.Add([Environment]::GetFolderPath('CommonStartMenu'))
     $dirs.Add([Environment]::GetFolderPath('Desktop'))
     $dirs.Add([Environment]::GetFolderPath('CommonDesktopDirectory'))
-    # Multi-user: Start Menu + Desktop của các user khác
+    # Multi-user: Start Menu + Desktop of other users
     foreach ($up in $script:otherUserProfiles) {
         $dirs.Add((Join-Path $up.Path 'AppData\Roaming\Microsoft\Windows\Start Menu'))
         $dirs.Add((Join-Path $up.Path 'Desktop'))
@@ -1358,7 +1360,7 @@ function Invoke-ScanShortcuts {
                 if ($target -notmatch '^[A-Za-z]:\\') { continue }
                 if ((Test-ExeMissing -ExePath $target) -and -not (Test-Path -LiteralPath $target -PathType Container)) {
                     Add-Finding -Category 'Shortcuts' -Name $lnkFile.Name -Target $target `
-                        -Detail ("Shortcut chết tại {0}" -f $lnkFile.DirectoryName) -Severity 'Medium' `
+                        -Detail ("Dead shortcut at {0}" -f $lnkFile.DirectoryName) -Severity 'Medium' `
                         -RemoveKind 'RecycleFile' -RemoveData @{ Path = $lnkFile.FullName }
                 }
             } catch {}
@@ -1384,11 +1386,11 @@ function Invoke-ScanFirewall {
             $rule = $f | Get-NetFirewallRule -ErrorAction SilentlyContinue
             $ruleName = if ($rule) { $rule.DisplayName } else { $f.InstanceID }
             $ruleId = if ($rule) { $rule.Name } else { $f.InstanceID }
-            Add-Finding -Category 'Firewall' -Name $ruleName -Target $exe -Detail 'Rule cho chương trình đã mất' -Severity 'Info' `
+            Add-Finding -Category 'Firewall' -Name $ruleName -Target $exe -Detail 'Rule for a program that is gone' -Severity 'Info' `
                 -RemoveKind 'Firewall' -RemoveData @{ RuleName = $ruleId }
         }
     } catch {
-        Write-Warning "Không quét được firewall: $($_.Exception.Message)"
+        Write-Warning "Firewall scan failed: $($_.Exception.Message)"
     }
 }
 
@@ -1398,8 +1400,8 @@ function Invoke-ScanDefender {
         if ([string]::IsNullOrWhiteSpace($path) -or $path -like 'N/A*') { continue }
         $expanded = [Environment]::ExpandEnvironmentVariables($path)
         if (-not (Test-Path -LiteralPath $expanded)) {
-            Add-Finding -Category 'Defender' -Name 'ExclusionPath mồ côi' -Target $path `
-                -Detail 'Exclusion trỏ đường dẫn không tồn tại - vùng mù antivirus vô nghĩa' -Severity 'Medium' `
+            Add-Finding -Category 'Defender' -Name 'Orphaned ExclusionPath' -Target $path `
+                -Detail 'Exclusion points to a non-existent path - a pointless antivirus blind spot' -Severity 'Medium' `
                 -RemoveKind 'DefenderPath' -RemoveData @{ Value = $path }
         }
     }
@@ -1407,13 +1409,13 @@ function Invoke-ScanDefender {
         if ([string]::IsNullOrWhiteSpace($proc) -or $proc -like 'N/A*') { continue }
         $expanded = [Environment]::ExpandEnvironmentVariables($proc)
         if ($expanded -match '^[A-Za-z]:\\' -and (Test-ExeMissing -ExePath $expanded)) {
-            Add-Finding -Category 'Defender' -Name 'ExclusionProcess mồ côi' -Target $proc `
-                -Detail 'Process exclusion cho exe không còn' -Severity 'Medium' `
+            Add-Finding -Category 'Defender' -Name 'Orphaned ExclusionProcess' -Target $proc `
+                -Detail 'Process exclusion for an exe that no longer exists' -Severity 'Medium' `
                 -RemoveKind 'DefenderProcess' -RemoveData @{ Value = $proc }
         }
     }
     if (@($pref.ExclusionPath) -like 'N/A*') {
-        Write-Warning 'Defender ẩn exclusions với non-admin - chạy admin để quét đầy đủ.'
+        Write-Warning 'Defender hides exclusions from non-admin - run elevated for a full scan.'
     }
 }
 
@@ -1429,14 +1431,14 @@ function Invoke-ScanCerts {
                 if ($subject -match [regex]::Escape($pat)) { $matchedTool = $pat; break }
             }
             if ($matchedTool) {
-                Add-Finding -Category 'Certs' -Name ("Root CA của tool: {0}" -f $matchedTool) `
-                    -Target ("{0} (hết hạn {1})" -f $subject, $cert.NotAfter.ToString('yyyy-MM-dd')) `
-                    -Detail ("Store: {0} | Thumbprint: {1} - nếu đã gỡ tool, xóa bằng certmgr.msc (không tự động)" -f $storePath, $cert.Thumbprint) -Severity 'Medium'
+                Add-Finding -Category 'Certs' -Name ("Tool root CA: {0}" -f $matchedTool) `
+                    -Target ("{0} (expires {1})" -f $subject, $cert.NotAfter.ToString('yyyy-MM-dd')) `
+                    -Detail ("Store: {0} | Thumbprint: {1} - if the tool was uninstalled, remove via certmgr.msc (never automatic)" -f $storePath, $cert.Thumbprint) -Severity 'Medium'
             }
             elseif ($storePath -eq 'Cert:\CurrentUser\Root' -and $cert.Subject -eq $cert.Issuer -and $subject -notmatch $publicCAs) {
-                Add-Finding -Category 'Certs' -Name 'Root CA tự ký bất thường (store user)' `
-                    -Target ("{0} (hết hạn {1})" -f $subject, $cert.NotAfter.ToString('yyyy-MM-dd')) `
-                    -Detail ("Thumbprint: {0} - xác minh có chủ đích không (dev cert do dotnet/IIS tạo là bình thường)" -f $cert.Thumbprint) -Severity 'Info'
+                Add-Finding -Category 'Certs' -Name 'Unusual self-signed root CA (user store)' `
+                    -Target ("{0} (expires {1})" -f $subject, $cert.NotAfter.ToString('yyyy-MM-dd')) `
+                    -Detail ("Thumbprint: {0} - verify it is intentional (dev certs created by dotnet/IIS are normal)" -f $cert.Thumbprint) -Severity 'Info'
             }
         }
     }
@@ -1456,11 +1458,11 @@ function Invoke-ScanIFEO {
                 $psPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\$subName"
                 if ($exe -and (Test-ExeMissing -ExePath $exe)) {
                     Add-Finding -Category 'IFEO' -Name $subName -Target $debugger `
-                        -Detail 'Debugger hijack trỏ exe đã mất - tàn dư hoặc dấu vết malware cũ' `
+                        -Detail 'Debugger hijack pointing to a missing exe - leftover or old malware trace' `
                         -RemoveKind 'RegValue' -RemoveData @{ PSPath = $psPath; Value = 'Debugger' }
                 } else {
                     Add-Finding -Category 'IFEO' -Name $subName -Target $debugger `
-                        -Detail 'Debugger đang gắn - xác minh là chủ đích (vd: vsjitdebugger)' -Severity 'Info'
+                        -Detail 'Debugger attached - verify it is intentional (e.g. vsjitdebugger)' -Severity 'Info'
                 }
             } finally { $sub.Close() }
         }
@@ -1486,7 +1488,7 @@ function Invoke-ScanNativeMsg {
             $keyPath = Join-Path $base $sub.PSChildName
             if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) {
                 Add-Finding -Category 'NativeMsg' -Name $sub.PSChildName -Target $manifest `
-                    -Detail "Manifest JSON đã mất - đăng ký tại $base" `
+                    -Detail "Manifest JSON is gone - registered at $base" `
                     -RemoveKind 'RegKey' -RemoveData @{ PSPath = $keyPath }
                 continue
             }
@@ -1497,7 +1499,7 @@ function Invoke-ScanNativeMsg {
                     if ($exePath -notmatch '^[A-Za-z]:\\') { $exePath = Join-Path (Split-Path $manifest -Parent) $exePath }
                     if (Test-ExeMissing -ExePath $exePath) {
                         Add-Finding -Category 'NativeMsg' -Name $sub.PSChildName -Target $exePath `
-                            -Detail "Exe trong manifest đã mất - đăng ký tại $base" `
+                            -Detail "Exe referenced by manifest is gone - registered at $base" `
                             -RemoveKind 'RegKey' -RemoveData @{ PSPath = $keyPath }
                     }
                 }
@@ -1521,10 +1523,10 @@ function Invoke-ScanProtocols {
                 if ([string]::IsNullOrWhiteSpace($command)) { continue }
                 $exe = Resolve-CommandPath -CommandLine $command
                 if ($exe -and $exe -match '^[A-Za-z]:\\' -and (Test-ExeMissing -ExePath $exe)) {
-                    # HKCR là VIEW GỘP của HKCU+HKLM Classes - phải xóa ở hive thật,
-                    # xóa qua HKCR sẽ vỡ giữa chừng ("subkey does not exist")
+                    # HKCR is a MERGED VIEW of HKCU+HKLM Classes - must delete in the real
+                    # hives; deleting via HKCR breaks midway ("subkey does not exist")
                     Add-Finding -Category 'Protocols' -Name "$name`://" -Target $exe `
-                        -Detail 'Protocol handler trỏ exe đã mất' `
+                        -Detail 'Protocol handler points to a missing exe' `
                         -RemoveKind 'ProtocolKey' -RemoveData @{ Name = $name }
                 }
             } finally { $cmdKey.Close() }
@@ -1554,7 +1556,7 @@ function Invoke-ScanVendorReg {
                 try { $subCount = $sub.SubKeyCount; $valCount = $sub.ValueCount } finally { $sub.Close() }
                 $sev = if ($subCount -eq 0 -and $valCount -eq 0) { 'Info' } else { 'Medium' }
                 Add-Finding -Category 'VendorReg' -Name $name -Target ("{0}\Software\{1}" -f $rootInfo.Label, $name) `
-                    -Detail ("Không khớp app nào đang cài ({0} subkey, {1} value)" -f $subCount, $valCount) -Severity $sev `
+                    -Detail ("Matches no installed app ({0} subkey(s), {1} value(s))" -f $subCount, $valCount) -Severity $sev `
                     -RemoveKind 'RegKey' -RemoveData @{ PSPath = ("{0}:\SOFTWARE\{1}" -f $rootInfo.Label, $name) }
             }
         } finally { $root.Close() }
@@ -1562,15 +1564,17 @@ function Invoke-ScanVendorReg {
 }
 
 function Invoke-ScanDocker {
-    # Tàn dư Docker Desktop/CLI. Còn cài -> chỉ báo kho dữ liệu lớn + lệnh dọn chính chủ
-    # (Info, không cho xóa - giống DevTrash); đã gỡ -> thư mục dữ liệu và đăng ký WSL
-    # distro docker-desktop* là tàn dư. Service com.docker.service mất binary đã có
-    # module Services bắt, không lặp lại ở đây.
-    # Hai tầng phát hiện: Desktop (exe/uninstall key) riêng, engine/CLI riêng.
-    # Service docker/com.docker.service với binary CÒN SỐNG = Docker Engine đang chạy
-    # (kể cả không có Desktop lẫn CLI trên PATH - ProgramData\Docker khi đó chứa image
-    # đang dùng, tuyệt đối không được coi là tàn dư); binary mất thì module Services
-    # đã bắt service, ở đây vẫn tính là "đã gỡ" để báo thư mục sót.
+    # Docker Desktop/CLI leftovers. Still installed -> only report large data stores +
+    # the official cleanup command (Info, not deletable - like DevTrash); uninstalled ->
+    # data folders and docker-desktop* WSL distro registrations are leftovers. The
+    # com.docker.service with a missing binary is already caught by the Services module,
+    # not repeated here.
+    # Two detection tiers: Desktop (exe/uninstall key) and engine/CLI separately.
+    # A docker/com.docker.service service whose binary is ALIVE = Docker Engine running
+    # (even with no Desktop and no CLI on PATH - ProgramData\Docker then holds images
+    # in use and must NEVER be treated as leftover); if the binary is gone the Services
+    # module already caught the service, and we still count Docker as "uninstalled"
+    # so stray folders get reported.
     $desktopInstalled = (Test-Path -LiteralPath (Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe')) -or
                         (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA 'Programs\Docker\Docker\Docker Desktop.exe')) -or
                         (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Docker Desktop') -or
@@ -1581,8 +1585,8 @@ function Invoke-ScanDocker {
         if ($exe -and -not (Test-ExeMissing -ExePath $exe)) { $svcAlive = $true }
     }
     $dockerInstalled = $desktopInstalled -or $svcAlive -or ($null -ne (Get-Command docker -ErrorAction SilentlyContinue))
-    # Key Lxss docker-desktop* CHỈ do Docker Desktop tạo - Desktop đã gỡ thì chắc chắn
-    # là tàn dư, kể cả khi máy còn docker CLI standalone / Docker Engine khác
+    # Lxss docker-desktop* keys are created ONLY by Docker Desktop - if Desktop is gone
+    # they are definitely leftovers, even with a standalone docker CLI / another Docker Engine
     if (-not $desktopInstalled) {
         $lxss = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
         if (Test-Path $lxss) {
@@ -1590,7 +1594,7 @@ function Invoke-ScanDocker {
                 $name = [string](Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DistributionName
                 if ($name -notmatch '^docker-desktop') { continue }
                 Add-Finding -Category 'Docker' -Name ("WSL distro: {0}" -f $name) -Target ($lxss + '\' + $key.PSChildName) `
-                    -Detail ("Đăng ký WSL distro của Docker Desktop đã gỡ - xóa key gỡ đăng ký khỏi wsl (backup .reg); nếu đang là distro mặc định, đặt lại bằng: wsl --set-default <tên>") `
+                    -Detail ("WSL distro registration of an uninstalled Docker Desktop - deleting the key unregisters it from wsl (.reg backup); if it is the default distro, reset with: wsl --set-default <name>") `
                     -Severity 'High' -RemoveKind 'RegKey' -RemoveData @{ PSPath = ($lxss + '\' + $key.PSChildName) }
             }
         }
@@ -1605,12 +1609,12 @@ function Invoke-ScanDocker {
         (Join-Path $env:USERPROFILE '.docker')
     )
     if ($dockerInstalled) {
-        # Một dạng Docker vẫn hiện diện: chỉ nhắc kho >= 1 GB để dọn bằng lệnh chính chủ
+        # Some form of Docker is still present: only mention stores >= 1 GB for cleanup via the official command
         foreach ($dir in $dataDirs) {
             $size = Get-DirSizeMB -Path $dir
             if ($size -lt 1024) { continue }
-            Add-Finding -Category 'Docker' -Name 'Kho dữ liệu Docker (đang cài)' -Target $dir -SizeMB $size `
-                -Detail 'Docker còn cài - KHÔNG xóa tay; dọn image/cache bằng: docker system prune (thêm -a nếu muốn xóa cả image chưa dùng)' `
+            Add-Finding -Category 'Docker' -Name 'Docker data store (installed)' -Target $dir -SizeMB $size `
+                -Detail 'Docker is still installed - do NOT delete by hand; clean images/cache with: docker system prune (add -a to also remove unused images)' `
                 -Severity 'Info'
         }
         return
@@ -1619,73 +1623,75 @@ function Invoke-ScanDocker {
         $size = Get-DirSizeMB -Path $dir
         if ($size -lt 0) { continue }
         if ((Split-Path $dir -Leaf) -eq '.docker') {
-            # Cấu hình + credential: đăng nhập registry (auths), cert/key TLS, context tới
-            # engine từ xa - CLI chạy trong WSL/máy khác vẫn dùng được, không dám gọi "an toàn"
-            Add-Finding -Category 'Docker' -Name '.docker (cấu hình/credential)' -Target $dir -SizeMB $size `
-                -Detail 'Chứa đăng nhập registry, cert TLS, context engine từ xa - chỉ xóa nếu chắc chắn không còn dùng Docker ở bất kỳ dạng nào' `
+            # Config + credentials: registry logins (auths), TLS certs/keys, contexts for
+            # remote engines - a CLI in WSL/another machine may still use them; can't call it "safe"
+            Add-Finding -Category 'Docker' -Name '.docker (config/credentials)' -Target $dir -SizeMB $size `
+                -Detail 'Holds registry logins, TLS certs, remote engine contexts - delete only if you are sure Docker is not used in any form anymore' `
                 -Severity 'Medium' -RemoveKind 'RecycleDir' -RemoveData @{ Path = $dir }
             continue
         }
         Add-Finding -Category 'Docker' -Name (Split-Path $dir -Leaf) -Target $dir -SizeMB $size `
-            -Detail 'Docker đã gỡ nhưng thư mục dữ liệu còn lại - tàn dư, xóa an toàn' -Severity 'High' `
+            -Detail 'Docker was uninstalled but the data folder remains - leftover, safe to delete' -Severity 'High' `
             -RemoveKind 'RecycleDir' -RemoveData @{ Path = $dir }
     }
-    # Thư mục cài đặt sót trong Program Files (exe chính đã mất nhưng folder còn)
+    # Leftover install folder in Program Files (main exe gone but folder remains)
     $installDir = Join-Path $env:ProgramFiles 'Docker'
     if (Test-Path -LiteralPath $installDir) {
         Add-Finding -Category 'Docker' -Name 'Docker (Program Files)' -Target $installDir `
             -SizeMB (Get-DirSizeMB -Path $installDir) `
-            -Detail 'Thư mục cài đặt còn sót sau khi gỡ Docker Desktop' -Severity 'High' `
+            -Detail 'Install folder left behind after uninstalling Docker Desktop' -Severity 'High' `
             -RemoveKind 'RecycleDir' -RemoveData @{ Path = $installDir }
     }
 }
 
 function Invoke-ScanWSL {
-    # Tàn dư WSL: đăng ký distro trỏ thư mục đã mất, dữ liệu distro (ext4.vhdx - có thể
-    # nhiều GB) không còn đăng ký, thư mục lxss legacy (WSL1 trước 1709). Distro đăng ký
-    # hợp lệ KHÔNG bị đụng tới. Distro docker-desktop* nhường module Docker xử lý.
+    # WSL leftovers: distro registrations pointing to missing folders, unregistered
+    # distro data (ext4.vhdx - can be many GB), legacy lxss folder (WSL1 pre-1709).
+    # Validly registered distros are NOT touched. docker-desktop* distros are left
+    # to the Docker module.
     $lxss = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
     $registered = [System.Collections.Generic.List[string]]::new()
     if (Test-Path $lxss) {
         foreach ($key in (Get-ChildItem -Path $lxss -ErrorAction SilentlyContinue)) {
-            if ($key.PSChildName -notmatch '^\{[0-9A-Fa-f-]+\}$') { continue }   # distro luôn là subkey GUID
+            if ($key.PSChildName -notmatch '^\{[0-9A-Fa-f-]+\}$') { continue }   # distros are always GUID subkeys
             $props = Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue
             $name = [string]$props.DistributionName
             if ($name -match '^docker-desktop') { continue }
             $base = [string]$props.BasePath
-            # Chuẩn hóa prefix đường dẫn dài: \\?\C:\... -> C:\..., \\?\UNC\srv\share -> \\srv\share
+            # Normalize long-path prefixes: \\?\C:\... -> C:\..., \\?\UNC\srv\share -> \\srv\share
             if ($base -match '^\\\\\?\\UNC\\') { $base = '\\' + $base.Substring(8) }
             elseif ($base -match '^\\\\\?\\') { $base = $base.Substring(4) }
             if ([string]::IsNullOrWhiteSpace($base)) { continue }
             if (Test-Path -LiteralPath $base) {
                 $registered.Add($base.TrimEnd('\').ToLowerInvariant())
             } else {
-                # Cả Ổ ĐĨA không thấy (USB/ổ ngoài chưa cắm, BitLocker chưa mở khóa, share
-                # mất mạng - hay gặp với distro wsl --import chuyển khỏi ổ C) thì distro có
-                # thể vẫn sống -> KHÔNG kết luận mồ côi, chỉ báo Info không cho xóa
+                # If the whole DRIVE is missing (USB/external not plugged in, BitLocker
+                # locked, network share down - common with wsl --import distros moved off
+                # C:) the distro may still be alive -> do NOT conclude it's orphaned,
+                # report Info only, no deletion
                 $driveRoot = $null
                 try { $driveRoot = [System.IO.Path]::GetPathRoot($base) } catch {}
                 if ($driveRoot -and -not (Test-Path -LiteralPath $driveRoot)) {
-                    Add-Finding -Category 'WSL' -Name ("Distro trên ổ không truy cập được: {0}" -f $name) -Target $base `
-                        -Detail 'Ổ đĩa chứa distro hiện không thấy (chưa cắm? BitLocker khóa?) - không kết luận gì, không xóa' `
+                    Add-Finding -Category 'WSL' -Name ("Distro on an inaccessible drive: {0}" -f $name) -Target $base `
+                        -Detail 'The drive holding this distro is currently missing (unplugged? BitLocker locked?) - no conclusion drawn, nothing deleted' `
                         -Severity 'Info'
                 } else {
-                    Add-Finding -Category 'WSL' -Name ("Distro mồ côi: {0}" -f $name) -Target $base `
-                        -Detail 'Đăng ký trong Lxss nhưng thư mục dữ liệu đã mất (ổ đĩa vẫn truy cập được) - distro hỏng, wsl không khởi động được nó nữa' `
+                    Add-Finding -Category 'WSL' -Name ("Orphaned distro: {0}" -f $name) -Target $base `
+                        -Detail 'Registered in Lxss but the data folder is gone (drive is accessible) - broken distro, wsl can no longer start it' `
                         -RemoveKind 'RegKey' -RemoveData @{ PSPath = ($lxss + '\' + $key.PSChildName) }
                 }
             }
         }
-        # Con trỏ distro mặc định trỏ GUID không còn đăng ký -> lệnh `wsl` trần sẽ lỗi
-        # cho tới khi người dùng tự đặt lại (chỉ báo, không tự sửa)
+        # Default distro pointer referencing a GUID that is no longer registered -> bare
+        # `wsl` fails until the user resets it (report only, no auto-fix)
         $defaultGuid = [string](Get-ItemProperty -Path $lxss -ErrorAction SilentlyContinue).DefaultDistribution
         if ($defaultGuid -and -not (Test-Path ($lxss + '\' + $defaultGuid))) {
-            Add-Finding -Category 'WSL' -Name 'DefaultDistribution trỏ distro không tồn tại' -Target ($lxss + '\DefaultDistribution') `
-                -Detail ("Con trỏ default = {0} nhưng không còn đăng ký nào như vậy - đặt lại bằng: wsl --set-default <tên distro>" -f $defaultGuid) `
+            Add-Finding -Category 'WSL' -Name 'DefaultDistribution points to a non-existent distro' -Target ($lxss + '\DefaultDistribution') `
+                -Detail ("Default pointer = {0} but no such registration exists - reset with: wsl --set-default <distro name>" -f $defaultGuid) `
                 -Severity 'Info'
         }
     }
-    # Dữ liệu distro trên đĩa mà WSL không còn đăng ký (unregister/gỡ sót lại vhdx)
+    # Distro data on disk that WSL no longer registers (vhdx left behind by unregister/uninstall)
     $candidates = [System.Collections.Generic.List[object]]::new()
     $wslRoot = Join-Path $env:LOCALAPPDATA 'wsl'
     if (Test-Path -LiteralPath $wslRoot) {
@@ -1701,23 +1707,23 @@ function Invoke-ScanWSL {
             $state = Join-Path $pkg.FullName 'LocalState'
             if (-not (Test-Path -LiteralPath (Join-Path $state 'ext4.vhdx'))) { continue }
             if ($registered -contains $state.TrimEnd('\').ToLowerInvariant()) { continue }
-            # Gói Store đã gỡ mà còn dữ liệu -> cả thư mục gói là tàn dư
+            # Store package uninstalled but data remains -> the whole package folder is leftover
             $candidates.Add(@{ Remove = $pkg.FullName; Pkg = $pkg.Name })
         }
     }
     if ($candidates.Count -gt 0) {
-        # Gói Store còn cài thì KHÔNG coi là tàn dư (app còn đó, chạy lại sẽ dùng tiếp);
-        # Get-AppxPackage lỗi (thiếu module Appx trên pwsh, chính sách chặn WinPSCompat...)
-        # -> không xác định được -> bỏ qua nhóm gói cho an toàn NHƯNG báo Info để kết quả
-        # quét giữa 2 engine không lệch nhau âm thầm
+        # A Store package still installed is NOT a leftover (the app is there; running it
+        # again will reuse the data); Get-AppxPackage failing (missing Appx module on pwsh,
+        # WinPSCompat blocked by policy...) -> undeterminable -> skip the package group for
+        # safety BUT report Info so results don't silently differ between the 2 engines
         $families = $null
         $pkgCandidates = @($candidates | Where-Object { $_.Pkg })
         if ($pkgCandidates.Count -gt 0) {
             try { $families = @((Get-AppxPackage -ErrorAction Stop).PackageFamilyName) } catch { $families = $null }
             if ($null -eq $families) {
-                Add-Finding -Category 'WSL' -Name 'Không xác định được trạng thái gói Store' `
-                    -Target ("{0} thư mục có ext4.vhdx trong Packages" -f $pkgCandidates.Count) `
-                    -Detail 'Get-AppxPackage lỗi - bỏ qua nhóm này cho an toàn; quét lại bằng Windows PowerShell 5.1 để kiểm tra đầy đủ' `
+                Add-Finding -Category 'WSL' -Name 'Store package state undeterminable' `
+                    -Target ("{0} folder(s) with ext4.vhdx in Packages" -f $pkgCandidates.Count) `
+                    -Detail 'Get-AppxPackage failed - group skipped for safety; re-scan with Windows PowerShell 5.1 for a full check' `
                     -Severity 'Info'
             }
         }
@@ -1726,17 +1732,17 @@ function Invoke-ScanWSL {
                 if ($null -eq $families) { continue }
                 if ($families -contains $c.Pkg) { continue }
             }
-            Add-Finding -Category 'WSL' -Name 'Dữ liệu distro không còn đăng ký' -Target $c.Remove `
+            Add-Finding -Category 'WSL' -Name 'Unregistered distro data' -Target $c.Remove `
                 -SizeMB (Get-DirSizeMB -Path $c.Remove) `
-                -Detail 'Có ext4.vhdx nhưng WSL không đăng ký distro nào ở đây (unregister/gỡ sót) - xem kỹ trước khi xóa' `
+                -Detail 'Contains ext4.vhdx but WSL registers no distro here (leftover from unregister/uninstall) - review carefully before deleting' `
                 -Severity 'Medium' -RemoveKind 'RecycleDir' -RemoveData @{ Path = $c.Remove }
         }
     }
-    # Thư mục WSL1 legacy (%LOCALAPPDATA%\lxss - kiến trúc cũ trước Windows 1709)
+    # Legacy WSL1 folder (%LOCALAPPDATA%\lxss - old architecture before Windows 1709)
     $legacy = Join-Path $env:LOCALAPPDATA 'lxss'
     if ((Test-Path -LiteralPath $legacy) -and ($registered -notcontains $legacy.TrimEnd('\').ToLowerInvariant())) {
-        Add-Finding -Category 'WSL' -Name 'Thư mục WSL1 legacy (lxss)' -Target $legacy -SizeMB (Get-DirSizeMB -Path $legacy) `
-            -Detail 'Kiến trúc WSL1 cũ (trước Windows 1709) - WSL hiện tại không dùng; xem kỹ trước khi xóa' `
+        Add-Finding -Category 'WSL' -Name 'Legacy WSL1 folder (lxss)' -Target $legacy -SizeMB (Get-DirSizeMB -Path $legacy) `
+            -Detail 'Old WSL1 architecture (before Windows 1709) - unused by current WSL; review carefully before deleting' `
             -Severity 'Medium' -RemoveKind 'RecycleDir' -RemoveData @{ Path = $legacy }
     }
 }
@@ -1752,13 +1758,13 @@ function Invoke-ScanDevTrash {
         @{ Name = 'Bun';            Command = 'bun';    Caches = @("$env:USERPROFILE\.bun\install\cache"); CleanCmd = 'bun pm cache rm' }
         @{ Name = 'Python / pip';   Command = 'pip';    Caches = @("$env:LOCALAPPDATA\pip\cache"); CleanCmd = 'pip cache purge' }
         @{ Name = '.NET / NuGet';   Command = 'dotnet'; Caches = @("$env:USERPROFILE\.nuget\packages", "$env:LOCALAPPDATA\NuGet"); CleanCmd = 'dotnet nuget locals all --clear' }
-        @{ Name = 'Java / Gradle';  Command = 'gradle'; Caches = @("$env:USERPROFILE\.gradle\caches", "$env:USERPROFILE\.gradle\daemon"); CleanCmd = 'gradle --stop rồi xóa .gradle\caches' }
+        @{ Name = 'Java / Gradle';  Command = 'gradle'; Caches = @("$env:USERPROFILE\.gradle\caches", "$env:USERPROFILE\.gradle\daemon"); CleanCmd = 'gradle --stop then delete .gradle\caches' }
         @{ Name = 'Java / Maven';   Command = 'mvn';    Caches = @("$env:USERPROFILE\.m2\repository"); CleanCmd = 'mvn dependency:purge-local-repository' }
         @{ Name = 'Go';             Command = 'go';     Caches = @("$env:USERPROFILE\go\pkg\mod", "$env:LOCALAPPDATA\go-build"); CleanCmd = 'go clean -modcache; go clean -cache' }
         @{ Name = 'Rust / Cargo';   Command = 'cargo';  Caches = @("$env:USERPROFILE\.cargo\registry", "$env:USERPROFILE\.cargo\git"); CleanCmd = 'cargo cache -a' }
         @{ Name = 'Flutter / Dart'; Command = 'flutter';Caches = @("$env:LOCALAPPDATA\Pub\Cache"); CleanCmd = 'flutter pub cache clean' }
         @{ Name = 'PHP / Composer'; Command = 'composer';Caches = @("$env:LOCALAPPDATA\Composer"); CleanCmd = 'composer clear-cache' }
-        @{ Name = 'Playwright';     Command = 'npx';    Caches = @("$env:LOCALAPPDATA\ms-playwright"); CleanCmd = 'npx playwright uninstall --all (cẩn thận)' }
+        @{ Name = 'Playwright';     Command = 'npx';    Caches = @("$env:LOCALAPPDATA\ms-playwright"); CleanCmd = 'npx playwright uninstall --all (careful)' }
         @{ Name = 'Chocolatey';     Command = 'choco';  Caches = @("$env:TEMP\chocolatey", "$env:ProgramData\ChocolateyHttpCache"); CleanCmd = 'choco cache remove' }
         @{ Name = 'Scoop';          Command = 'scoop';  Caches = @("$env:USERPROFILE\scoop\cache"); CleanCmd = 'scoop cache rm *' }
     )
@@ -1784,17 +1790,18 @@ function Invoke-ScanDevTrash {
         } elseif ($existing.Count -gt 0) {
             foreach ($c in $existing) {
                 Add-Finding -Category 'DevTrash' -Name $tc.Name -Target $c.Path -SizeMB $c.SizeMB `
-                    -Detail 'Cache của toolchain KHÔNG còn cài - tàn dư, xóa an toàn' -Severity 'High' `
+                    -Detail 'Cache of a toolchain that is NO longer installed - leftover, safe to delete' -Severity 'High' `
                     -RemoveKind 'RecycleDir' -RemoveData @{ Path = $c.Path }
             }
         }
     }
-    # In báo cáo qua cơ chế "nhường" của spinner nền (caller start spinner TRƯỚC khi
-    # gọi hàm này, stop ở finally SAU khi return) - in thẳng sẽ bị frame spinner
-    # 80ms vẽ đè lên dòng đang in -> báo cáo garbled/lệch cột (xác suất thấp nhưng thật)
+    # Print the report through the background spinner's "yield" mechanism (caller starts
+    # the spinner BEFORE calling this, stops it in finally AFTER return) - printing
+    # directly would let 80ms spinner frames overwrite the line being printed ->
+    # garbled/misaligned report (low probability but real)
     Invoke-WithSpinnerPaused -Handle $script:activeSpinner -Body {
-        Write-StatusLine ("√ DevTrash: đã kiểm tra {0} toolchain" -f $toolchains.Count) -Color Green -Persist
-        Write-Host ("[ĐANG CÀI] {0} toolchain - dọn bằng lệnh CHÍNH CHỦ (không tự xóa):" -f $installed.Count) -ForegroundColor Cyan
+        Write-StatusLine ("√ DevTrash: checked {0} toolchains" -f $toolchains.Count) -Color Green -Persist
+        Write-Host ("[INSTALLED] {0} toolchain(s) - clean with the OFFICIAL command (never auto-deleted):" -f $installed.Count) -ForegroundColor Cyan
         foreach ($it in ($installed | Sort-Object SizeMB -Descending)) {
             $color = if ($it.SizeMB -gt 1024) { 'Yellow' } else { 'Gray' }
             Write-Host ("  • {0,-18} {1,8:N0} MB   → {2}" -f $it.Name, $it.SizeMB, $it.CleanCmd) -ForegroundColor $color
@@ -1803,20 +1810,20 @@ function Invoke-ScanDevTrash {
 }
 
 function Test-FindingNeedsAdmin {
-    # Ước lượng mục này có cần Administrator để xóa không (để cảnh báo TRƯỚC khi làm)
+    # Estimate whether removing this item needs Administrator (to warn BEFORE acting)
     param($Finding)
     switch ($Finding.RemoveKind) {
         'Service'         { return $true }
         'Firewall'        { return $true }
         'DefenderPath'    { return $true }
         'DefenderProcess' { return $true }
-        'Task'            { return ($Finding.RemoveData.TaskPath -eq '\') }   # task gốc thường của hệ thống
+        'Task'            { return ($Finding.RemoveData.TaskPath -eq '\') }   # root tasks are usually system-owned
         'PathEntry'       { return ($Finding.RemoveData.Scope -eq 'Machine') }
         'RegValue'        { return ([string]$Finding.RemoveData.PSPath -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE|Registry::HKEY_USERS)') }
         'RegKey'          { return ([string]$Finding.RemoveData.PSPath -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE|Registry::HKEY_USERS)') }
         'RegKeyMulti'     { return [bool](@($Finding.RemoveData.Paths) | Where-Object { $_ -match '^(HKLM:|Registry::HKEY_LOCAL_MACHINE|Registry::HKEY_USERS)' }) }
         'ProtocolKey'     { return (Test-Path ("HKLM:\Software\Classes\{0}" -f $Finding.RemoveData.Name)) }
-        'OfflineRegValue' { return $true }   # reg load/unload cần Administrator
+        'OfflineRegValue' { return $true }   # reg load/unload requires Administrator
         'RecycleDir'      {
             $p = [string]$Finding.RemoveData.Path
             return ($p -match '^[A-Za-z]:\\(ProgramData|Program Files)') -or
@@ -1842,12 +1849,12 @@ function Remove-SelectedFindings {
     $log = [System.Collections.Generic.List[string]]::new()
     $ok = 0; $fail = 0
     $isAdmin = Test-IsAdmin
-    $pathChanges = @{}   # gom các PathEntry theo scope để xử lý 1 lần
+    $pathChanges = @{}   # collect PathEntry items per scope for one-shot processing
 
     $idx = 0
     $total = $Selected.Count
-    # Spinner nền quay đều suốt quá trình gỡ (mục xóa lâu không làm đứng hình);
-    # các dòng kết quả √/× in qua cơ chế "nhường" để không tranh chấp console
+    # Background spinner spins steadily through the whole removal (slow deletions don't
+    # freeze the UI); √/× result lines print via the "yield" mechanism to avoid console contention
     $removalSpinner = Start-ScanSpinner -Text $L.Cleaning
     try {
     foreach ($f in $Selected) {
@@ -1857,18 +1864,19 @@ function Remove-SelectedFindings {
         try {
             switch ($f.RemoveKind) {
                 'PathEntry' {
-                    # LƯU Ý: không dùng 'continue' trong switch (nó không nhảy vòng foreach) - dùng cờ
+                    # NOTE: 'continue' inside switch does not jump the foreach loop - use a flag
                     $scope = $f.RemoveData.Scope
                     if (-not $pathChanges.ContainsKey($scope)) { $pathChanges[$scope] = [System.Collections.Generic.List[int]]::new() }
                     $pathChanges[$scope].Add([int]$f.RemoveData.Position)
-                    $deferOrSkip = $true   # xử lý gộp ở cuối
+                    $deferOrSkip = $true   # processed in one batch at the end
                 }
                 'RecycleDir' {
-                    # Thư mục vượt quota Recycle Bin bị shell xóa VĨNH VIỄN, im lặng, KHÔNG
-                    # exception (OnlyErrorDialogs = FOF_NOCONFIRMATION) -> vhdx Docker/WSL hàng
-                    # chục GB sẽ mất trắng. Thư mục lớn chuyển thẳng vào backup của lần dọn:
-                    # cùng volume là rename tức thì, khác volume MoveDirectory tự copy+xóa
-                    # (chậm nhưng giữ đúng lời hứa "mọi xóa đều backup").
+                    # Folders over the Recycle Bin quota get PERMANENTLY deleted by the shell,
+                    # silently, with NO exception (OnlyErrorDialogs = FOF_NOCONFIRMATION) ->
+                    # tens-of-GB Docker/WSL vhdx would be lost outright. Large folders go
+                    # straight into this run's backup: same volume is an instant rename,
+                    # cross-volume MoveDirectory copies+deletes (slow but keeps the
+                    # "every deletion is backed up" promise).
                     $dirSizeMB = if ($f.SizeMB -gt 0) { $f.SizeMB } else { Get-DirSizeMB -Path $f.RemoveData.Path }
                     if ($dirSizeMB -gt 4096) {
                         $destDir = Join-Path $backupDir ("dir_{0}_{1}" -f $idx, (Split-Path $f.RemoveData.Path -Leaf))
@@ -1877,27 +1885,27 @@ function Remove-SelectedFindings {
                         try {
                             [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory($f.RemoveData.Path, 'OnlyErrorDialogs', 'SendToRecycleBin')
                         } catch {
-                            # API Recycle Bin dở chứng (vd: "not supported") -> chuyển cả thư mục
-                            # vào backup của lần dọn (vẫn hoàn tác được). Dùng MoveDirectory của VB
-                            # vì Move-Item với THƯ MỤC không đi qua volume khác được trên PS 5.1
+                            # Recycle Bin API acting up (e.g. "not supported") -> move the whole
+                            # folder into this run's backup (still undoable). Uses VB's MoveDirectory
+                            # because Move-Item can't move DIRECTORIES across volumes on PS 5.1
                             $destDir = Join-Path $backupDir ("dir_{0}_{1}" -f $idx, (Split-Path $f.RemoveData.Path -Leaf))
                             [Microsoft.VisualBasic.FileIO.FileSystem]::MoveDirectory($f.RemoveData.Path, $destDir)
                         }
                     }
-                    if (Test-Path -LiteralPath $f.RemoveData.Path) { throw 'Thư mục vẫn còn (bị khóa?)' }
+                    if (Test-Path -LiteralPath $f.RemoveData.Path) { throw 'Folder still exists (locked?)' }
                 }
                 'RecycleFile' {
                     try {
                         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f.RemoveData.Path, 'OnlyErrorDialogs', 'SendToRecycleBin')
                     } catch {
-                        # Fallback: copy file vào backup rồi xóa thẳng (fix "not supported" ở ProgramData)
+                        # Fallback: copy the file into backup then delete directly (fixes "not supported" in ProgramData)
                         $destFile = Join-Path $backupDir ("file_{0}_{1}" -f $idx, (Split-Path $f.RemoveData.Path -Leaf))
                         Copy-Item -LiteralPath $f.RemoveData.Path -Destination $destFile -Force -ErrorAction Stop
                         Remove-Item -LiteralPath $f.RemoveData.Path -Force -ErrorAction Stop
                     }
                 }
                 'ProtocolKey' {
-                    # Xóa ở CẢ HAI hive thật (HKCU + HKLM Software\Classes), backup từng cái
+                    # Delete in BOTH real hives (HKCU + HKLM Software\Classes), back up each
                     $protoName = $f.RemoveData.Name
                     $safeProto = ($protoName -replace '[^\w\.-]', '_')
                     $deletedAny = $false
@@ -1906,8 +1914,8 @@ function Remove-SelectedFindings {
                         @{ PS = "HKCU:\Software\Classes\$protoName"; Reg = "HKEY_CURRENT_USER\Software\Classes\$protoName"; Tag = 'HKCU' },
                         @{ PS = "HKLM:\Software\Classes\$protoName"; Reg = "HKEY_LOCAL_MACHINE\Software\Classes\$protoName"; Tag = 'HKLM' })) {
                         if (-not (Test-Path -Path $hivePair.PS)) { continue }
-                        # Tên file backup phải mang tên hive: key tồn tại ở CẢ HAI hive mà export
-                        # trùng tên thì bản HKLM đè bản HKCU (/y) -> restore mất một hive
+                        # Backup filename must carry the hive tag: if the key exists in BOTH hives
+                        # and exports share a name, the HKLM copy overwrites HKCU (/y) -> restore loses a hive
                         & reg.exe export $hivePair.Reg (Join-Path $backupDir "protocol_$idx`_$($hivePair.Tag)_$safeProto.reg") /y | Out-Null
                         try {
                             Remove-Item -Path $hivePair.PS -Recurse -Force -ErrorAction Stop
@@ -1915,13 +1923,13 @@ function Remove-SelectedFindings {
                         } catch { $protoErrors.Add($_.Exception.Message) }
                     }
                     if ($protoErrors.Count -gt 0) {
-                        if ($deletedAny) { throw ('đã xóa 1 hive, hive còn lại lỗi: ' + ($protoErrors -join '; ')) }
+                        if ($deletedAny) { throw ('one hive deleted, the other failed: ' + ($protoErrors -join '; ')) }
                         throw ($protoErrors -join '; ')
                     }
-                    if (-not $deletedAny) { throw 'không tìm thấy key ở hive nào (đã bị xóa trước đó?)' }
+                    if (-not $deletedAny) { throw 'key not found in any hive (already deleted earlier?)' }
                 }
                 'RegValue' {
-                    # Value đã biến mất (bản chiếu WOW64 / đã dọn trước đó) = mục tiêu đạt được -> OK
+                    # Value already gone (WOW64 reflection / cleaned earlier) = goal achieved -> OK
                     $existing = Get-ItemProperty -Path $f.RemoveData.PSPath -Name $f.RemoveData.Value -ErrorAction SilentlyContinue
                     if ($null -ne $existing) {
                         $regExe = ConvertTo-RegExePath -PSPath $f.RemoveData.PSPath
@@ -1931,7 +1939,7 @@ function Remove-SelectedFindings {
                     }
                 }
                 'RegKey' {
-                    # Key đã biến mất = mục tiêu đạt được -> OK, không báo lỗi
+                    # Key already gone = goal achieved -> OK, no error reported
                     if (Test-Path -Path $f.RemoveData.PSPath) {
                         $regExe = ConvertTo-RegExePath -PSPath $f.RemoveData.PSPath
                         $safe = ($f.Name -replace '[^\w\.-]', '_')
@@ -1940,7 +1948,7 @@ function Remove-SelectedFindings {
                     }
                 }
                 'OfflineRegValue' {
-                    # Run-key của user offline: nạp hive -> backup -> xóa value -> nhả hive
+                    # Offline user's Run key: load hive -> backup -> delete value -> unload hive
                     $od = $f.RemoveData
                     $safe = ($f.Name -replace '[^\w\.-]', '_')
                     $offlineResult = Invoke-WithOfflineHive -HivePath $od.Hive -Body {
@@ -1951,11 +1959,11 @@ function Remove-SelectedFindings {
                         try { $key.DeleteValue($od.Value, $false) } finally { $key.Close() }
                         return 'ok'
                     }
-                    if ($null -eq $offlineResult) { throw 'không nạp được hive (user vừa đăng nhập? thử lại sau)' }
+                    if ($null -eq $offlineResult) { throw 'could not load hive (user just logged in? try again later)' }
                 }
                 'RegKeyMulti' {
-                    # Một finding đại diện cho cùng key ở nhiều view registry (64-bit + WOW6432Node):
-                    # xóa mọi view còn tồn tại; view đã biến mất (bản chiếu) thì bỏ qua êm
+                    # One finding representing the same key across registry views (64-bit + WOW6432Node):
+                    # delete every view still present; views already gone (reflections) are skipped quietly
                     $safe = ($f.Name -replace '[^\w\.-]', '_')
                     $multiErrors = [System.Collections.Generic.List[string]]::new()
                     $viewIdx = 0
@@ -1963,8 +1971,9 @@ function Remove-SelectedFindings {
                         $viewIdx++
                         if (-not (Test-Path -Path $regPath)) { continue }
                         $regExe = ConvertTo-RegExePath -PSPath $regPath
-                        # Mỗi view một file backup riêng: key sống ở cả 64-bit lẫn WOW6432Node mà
-                        # export trùng tên thì bản sau đè bản trước (/y) -> restore mất một view
+                        # One backup file per view: if the key lives in both the 64-bit and
+                        # WOW6432Node views and exports share a name, the later one overwrites
+                        # the earlier (/y) -> restore loses a view
                         $viewTag = if ($regPath -match 'WOW6432Node') { 'wow64' } else { "v$viewIdx" }
                         & reg.exe export $regExe (Join-Path $backupDir "regkey_$idx`_$viewTag`_$safe.reg") 2>$null /y | Out-Null
                         try { Remove-Item -Path $regPath -Recurse -Force -ErrorAction Stop }
@@ -1976,20 +1985,21 @@ function Remove-SelectedFindings {
                     & reg.exe export ("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\" + $f.RemoveData.Name) (Join-Path $backupDir "service_$($f.RemoveData.Name).reg") /y | Out-Null
                     Stop-Service -Name $f.RemoveData.Name -Force -ErrorAction SilentlyContinue
                     & sc.exe delete $f.RemoveData.Name | Out-Null
-                    if ($LASTEXITCODE -ne 0) { throw "sc delete mã lỗi $LASTEXITCODE (cần admin?)" }
+                    if ($LASTEXITCODE -ne 0) { throw "sc delete exit code $LASTEXITCODE (admin required?)" }
                 }
                 'Task' {
-                    # Tên file kèm $idx: hai task trùng tên ở TaskPath khác nhau mà export trùng
-                    # tên file thì XML sau đè XML trước -> restore đăng ký nhầm cùng một task
+                    # Filename carries $idx: two same-named tasks at different TaskPaths exporting
+                    # to the same filename means the later XML overwrites the earlier -> restore
+                    # would register the same task twice
                     $safe = ($f.RemoveData.TaskName -replace '[^\w\.-]', '_')
                     Export-ScheduledTask -TaskPath $f.RemoveData.TaskPath -TaskName $f.RemoveData.TaskName -ErrorAction SilentlyContinue |
                         Set-Content -LiteralPath (Join-Path $backupDir "task_$idx`_$safe.xml") -Encoding Unicode
-                    # Manifest để restore đúng TaskPath/TaskName gốc
+                    # Manifest so restore re-registers with the original TaskPath/TaskName
                     Add-Content -LiteralPath (Join-Path $backupDir 'tasks_manifest.txt') `
                         -Value ("task_$idx`_$safe.xml|{0}|{1}" -f $f.RemoveData.TaskPath, $f.RemoveData.TaskName) -Encoding UTF8
                     Unregister-ScheduledTask -TaskPath $f.RemoveData.TaskPath -TaskName $f.RemoveData.TaskName -Confirm:$false -ErrorAction SilentlyContinue
                     if (Get-ScheduledTask -TaskPath $f.RemoveData.TaskPath -TaskName $f.RemoveData.TaskName -ErrorAction SilentlyContinue) {
-                        throw 'Task vẫn còn (cần admin?)'
+                        throw 'Task still exists (admin required?)'
                     }
                 }
                 'Firewall' {
@@ -1998,20 +2008,20 @@ function Remove-SelectedFindings {
                     Remove-NetFirewallRule -Name $f.RemoveData.RuleName -ErrorAction Stop
                 }
                 'DefenderPath' {
-                    if (-not $isAdmin) { throw 'Cần Administrator' }
+                    if (-not $isAdmin) { throw 'Administrator required' }
                     Remove-MpPreference -ExclusionPath $f.RemoveData.Value -ErrorAction Stop
                 }
                 'DefenderProcess' {
-                    if (-not $isAdmin) { throw 'Cần Administrator' }
+                    if (-not $isAdmin) { throw 'Administrator required' }
                     Remove-MpPreference -ExclusionProcess $f.RemoveData.Value -ErrorAction Stop
                 }
                 default { $deferOrSkip = $true }
             }
             if ($deferOrSkip) { continue }
-            # KHÔNG dùng GetNewClosure: nó buộc block vào dynamic module -> khi chạy
-            # script kiểu `.\WinTrash.ps1` (hàm nằm ở script scope, không phải global
-            # như khi chạy -File) thì module không thấy Write-StatusLine (issue #1).
-            # Block thường giữ session state gốc -> hàm lẫn biến đều resolve đúng.
+            # Do NOT use GetNewClosure: it binds the block to a dynamic module -> when the
+            # script runs as `.\WinTrash.ps1` (functions live in script scope, not global
+            # as with -File) the module can't see Write-StatusLine (issue #1).
+            # A plain block keeps the original session state -> functions and variables resolve fine.
             Invoke-WithSpinnerPaused -Handle $removalSpinner -Body {
                 Write-StatusLine ("  √ [{0}/{1}] [{2}] {3}" -f $idx, $total, $f.Category, $f.Name) -Color Green -Persist
             }
@@ -2029,12 +2039,12 @@ function Remove-SelectedFindings {
     }
     } finally { Stop-ScanSpinner -Handle $removalSpinner }
 
-    # Xử lý gộp các mục PATH (mỗi scope ghi lại 1 lần, backup raw trước)
+    # Batched PATH handling (each scope written once, raw value backed up first)
     foreach ($scope in $pathChanges.Keys) {
         try {
             $subKey = if ($scope -eq 'Machine') { 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment' } else { 'Environment' }
             $hive = if ($scope -eq 'Machine') { 'HKLM' } else { 'HKCU' }
-            if ($scope -eq 'Machine' -and -not $isAdmin) { throw 'Cần Administrator cho PATH Machine' }
+            if ($scope -eq 'Machine' -and -not $isAdmin) { throw 'Administrator required for Machine PATH' }
             $raw = Get-RawRegValue -Hive $hive -SubKey $subKey -ValueName 'Path'
             Set-Content -LiteralPath (Join-Path $backupDir "PATH_$scope.txt") -Value $raw -Encoding UTF8
             $entries = $raw -split ';'
@@ -2046,7 +2056,7 @@ function Remove-SelectedFindings {
             $root = if ($hive -eq 'HKLM') { [Microsoft.Win32.Registry]::LocalMachine } else { [Microsoft.Win32.Registry]::CurrentUser }
             $key = $root.OpenSubKey($subKey, $true)
             try { $key.SetValue('Path', ($keep -join ';'), [Microsoft.Win32.RegistryValueKind]::ExpandString) } finally { $key.Close() }
-            Write-Host ("  √ [Path] {0}: xóa {1} mục" -f $scope, $pathChanges[$scope].Count) -ForegroundColor Green
+            Write-Host ("  √ [Path] {0}: removed {1} entries" -f $scope, $pathChanges[$scope].Count) -ForegroundColor Green
             $log.Add("OK   [Path] $scope - removed $($pathChanges[$scope].Count) entries")
             $ok += $pathChanges[$scope].Count
         } catch {
@@ -2095,9 +2105,9 @@ function Invoke-AllScans {
     foreach ($mod in $scanModules) {
         $mi++
         $before = $script:findings.Count
-        # Spinner nền quay đều trong suốt thời gian module chạy (không đứng hình)
-        # try/finally: module có ném lỗi thì spinner vẫn PHẢI được dập (tránh leak
-        # luồng ghi console -> chữ đè lộn xộn lên menu về sau)
+        # Background spinner spins steadily while the module runs (no freezing)
+        # try/finally: even if the module throws, the spinner MUST be stopped (avoids
+        # leaking a console-writing thread -> garbled text over later menus)
         $spinnerHandle = Start-ScanSpinner -Text ("[{0,2}/{1}] {2}..." -f $mi, $scanModules.Count, $mod.Name)
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         try { & $mod.Fn } finally { $sw.Stop(); Stop-ScanSpinner -Handle $spinnerHandle }
@@ -2106,15 +2116,15 @@ function Invoke-AllScans {
         $redirected = $false
         try { $redirected = [Console]::IsOutputRedirected } catch {}
         if ($redirected) {
-            Write-Host ("√ [{0,2}/{1}] {2,-12} {3,3} phát hiện  ({4:N1}s)" -f $mi, $scanModules.Count, $mod.Name, $found, $sw.Elapsed.TotalSeconds)
+            Write-Host ("√ [{0,2}/{1}] {2,-12} {3,3} findings  ({4:N1}s)" -f $mi, $scanModules.Count, $mod.Name, $found, $sw.Elapsed.TotalSeconds)
         } else {
-            # Dòng chốt nhiều màu: tích XANH LÁ = đã quét xong, số phát hiện vàng nếu > 0
+            # Multi-color final line: GREEN check = module done, findings count yellow if > 0
             $w = 120
             try { $w = [Console]::WindowWidth - 1 } catch {}
             Write-Host ("`r" + (' ' * $w) + "`r") -NoNewline
             Write-C '√ ' -Color Green -NoNewline
             Write-C ("[{0,2}/{1}] {2,-12} " -f $mi, $scanModules.Count, $mod.Name) -Color Gray -NoNewline
-            Write-C ("{0,3} phát hiện" -f $found) -Color $countColor -NoNewline
+            Write-C ("{0,3} findings" -f $found) -Color $countColor -NoNewline
             Write-C ("  ({0:N1}s)" -f $sw.Elapsed.TotalSeconds) -Color DarkGray
         }
     }
@@ -2141,7 +2151,7 @@ function Export-HtmlReport {
     param([string]$Path)
     $enc = { param($s) [System.Net.WebUtility]::HtmlEncode([string]$s) }
     $sb = [System.Text.StringBuilder]::new()
-    [void]$sb.AppendLine('<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>WinTrash Report</title><style>')
+    [void]$sb.AppendLine('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>WinTrash Report</title><style>')
     [void]$sb.AppendLine('body{font-family:Segoe UI,Arial,sans-serif;margin:24px;background:#f6f8fa;color:#1f2328}h1{font-size:22px}.sub{color:#57606a;margin-bottom:16px}')
     [void]$sb.AppendLine('table{border-collapse:collapse;width:100%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:24px}')
     [void]$sb.AppendLine('th,td{border:1px solid #d0d7de;padding:6px 10px;text-align:left;font-size:13px;vertical-align:top}th{background:#eaeef2}td.mono{font-family:Consolas,monospace;word-break:break-all}')
@@ -2175,7 +2185,7 @@ function Invoke-FlowScan {
     Export-HtmlReport -Path $html
     Write-Host ''
     Write-Host ($L.ReportSaved -f $html) -ForegroundColor Green
-    if ($script:Language -ne 'vi') { Write-Host $L.NoteVi -ForegroundColor DarkGray }
+    if ($script:Language -ne 'en') { Write-Host $L.NoteVi -ForegroundColor DarkGray }
 }
 
 function Invoke-FlowClean {
@@ -2189,7 +2199,7 @@ function Invoke-FlowClean {
         Invoke-AllScans -L $L
         Show-ScanSummary -L $L
     }
-    # Áp danh sách bỏ qua (wintrash.ignore.json)
+    # Apply the ignore list (wintrash.ignore.json)
     $ignoreIds = @(Get-IgnoreList)
     $allRemovable = @($script:findings | Where-Object { $_.RemoveKind -ne 'None' })
     $removable = @($allRemovable | Where-Object { $ignoreIds -notcontains (Get-FindingId $_) })
@@ -2210,7 +2220,7 @@ function Invoke-FlowClean {
     }
     $sevs = foreach ($f in $removable) { $f.Severity }
     $selectedIdx = Show-CheckboxMenu -Labels @($labels) -Severities @($sevs) -Title $L.PickerTitle -Help $L.PickerHelp -AllowIgnore
-    # Ghi các mục user bấm I vào ignore list (kể cả khi Esc)
+    # Record items the user pressed I on into the ignore list (even on Esc)
     if ($script:pickerIgnored.Count -gt 0) {
         $newIgnoreIds = @($script:pickerIgnored | ForEach-Object { Get-FindingId $removable[$_] })
         Add-ToIgnoreList -Ids $newIgnoreIds
@@ -2224,14 +2234,14 @@ function Invoke-FlowClean {
     $answer = Read-Host ($L.ConfirmDel -f $selected.Count)
     if ($answer -notmatch '^[yY]') { Write-Host $L.NothingSel -ForegroundColor Yellow; return }
 
-    # Chưa phải admin mà có mục cần admin -> đề nghị mở cửa sổ Administrator
-    # (tránh cảnh cả trăm dòng lỗi "Access is denied" như trước)
+    # Not admin but some items need admin -> offer to open an Administrator window
+    # (avoids the old wall of hundreds of "Access is denied" errors)
     if (-not (Test-IsAdmin)) {
         $adminNeeded = @($selected | Where-Object { Test-FindingNeedsAdmin -Finding $_ })
         if ($adminNeeded.Count -gt 0 -and (Test-Interactive)) {
             $elevAnswer = Read-Host ($L.ElevateAsk -f $adminNeeded.Count, $selected.Count)
             if ($elevAnswer -match '^[yY]') {
-                # Lưu danh sách ID đã chọn -> cửa sổ admin quét lại và dọn đúng các mục này
+                # Save the selected IDs -> the admin window re-scans and cleans exactly these items
                 $pendingDir = Join-Path $PSScriptRoot 'WinTrashBackups'
                 if (-not (Test-Path -LiteralPath $pendingDir)) { New-Item -ItemType Directory -Path $pendingDir -Force | Out-Null }
                 $ids = @($selected | ForEach-Object { Get-FindingId $_ })
@@ -2241,7 +2251,7 @@ function Invoke-FlowClean {
                 Write-Host $L.ElevateLaunched -ForegroundColor Green
                 return
             }
-            # Chọn n: chỉ dọn phần làm được ở quyền thường
+            # Answered n: clean only what is possible without elevation
             $selected = @($selected | Where-Object { -not (Test-FindingNeedsAdmin -Finding $_) })
             Write-Host ($L.SkippedAdmin -f $adminNeeded.Count) -ForegroundColor Yellow
             if ($selected.Count -eq 0) { return }
@@ -2251,13 +2261,13 @@ function Invoke-FlowClean {
 }
 
 function Invoke-FlowCleanResume {
-    # Chạy trong cửa sổ Administrator: đọc danh sách ID đã chọn, quét lại, dọn đúng các mục đó
+    # Runs in the Administrator window: read the saved IDs, re-scan, clean exactly those items
     param([hashtable]$L)
     $pendingFile = Join-Path $PSScriptRoot 'WinTrashBackups\pending-clean.json'
     if (-not (Test-Path -LiteralPath $pendingFile)) { Write-Host $L.ResumeNothing -ForegroundColor Yellow; return }
     $ids = @(Get-Content -LiteralPath $pendingFile -Raw | ConvertFrom-Json)
     Remove-Item -LiteralPath $pendingFile -Force -ErrorAction SilentlyContinue
-    Request-MultiUserScan -L $L -Auto   # bao phủ cả mục của user khác trong danh sách đã chọn
+    Request-MultiUserScan -L $L -Auto   # also cover other users' items in the saved selection
     Invoke-AllScans -L $L
     if (@($ids | Where-Object { $_ -like 'DevTrash|*' }).Count -gt 0) {
         $spinnerHandle = Start-ScanSpinner -Text 'DevTrash...'
@@ -2288,16 +2298,16 @@ function Invoke-FlowRestore {
     $dir = $backups[$sel - 1].FullName
 
     $ok = 0; $fail = 0
-    # 1. Import lại toàn bộ .reg
+    # 1. Re-import every .reg
     foreach ($regFile in (Get-ChildItem -LiteralPath $dir -Filter '*.reg' -ErrorAction SilentlyContinue)) {
         & reg.exe import $regFile.FullName 2>$null
         if ($LASTEXITCODE -eq 0) {
             Write-StatusLine ("  √ reg import: {0}" -f $regFile.Name) -Color Green -Persist; $ok++
         } else {
-            Write-StatusLine ("  × reg import: {0} (cần admin?)" -f $regFile.Name) -Color Red -Persist; $fail++
+            Write-StatusLine ("  × reg import: {0} (admin required?)" -f $regFile.Name) -Color Red -Persist; $fail++
         }
     }
-    # 2. Đăng ký lại scheduled task từ manifest
+    # 2. Re-register scheduled tasks from the manifest
     $manifest = Join-Path $dir 'tasks_manifest.txt'
     if (Test-Path -LiteralPath $manifest) {
         foreach ($line in (Get-Content -LiteralPath $manifest)) {
@@ -2313,7 +2323,7 @@ function Invoke-FlowRestore {
             }
         }
     }
-    # 3. Khôi phục PATH nếu có backup
+    # 3. Restore PATH if a backup exists
     foreach ($scope in 'Machine', 'User') {
         $pathFile = Join-Path $dir "PATH_$scope.txt"
         if (-not (Test-Path -LiteralPath $pathFile)) { continue }
@@ -2330,7 +2340,7 @@ function Invoke-FlowRestore {
     }
     Write-Host ''
     Write-Host ($L.RestoreDone -f $ok, $fail) -ForegroundColor $(if ($fail) { 'Yellow' } else { 'Green' })
-    Write-Host 'Lưu ý: thư mục/file đã vào Recycle Bin thì Restore từ Recycle Bin của Windows.' -ForegroundColor DarkGray
+    Write-Host 'Note: folders/files sent to the Recycle Bin are restored from the Windows Recycle Bin.' -ForegroundColor DarkGray
 }
 
 function Invoke-FlowTemp {
@@ -2365,9 +2375,9 @@ function Invoke-FlowTemp {
             $len = $f.Length
             Remove-Item -LiteralPath $f.FullName -Force -ErrorAction Stop
             $deleted++; $freedBytes += $len
-        } catch {}   # file đang bị khóa - bỏ qua, không sao
+        } catch {}   # file is locked - skip it, no harm done
     }
-    # Dọn thư mục rỗng còn sót trong Temp user
+    # Clean up leftover empty folders in the user's Temp
     Get-ChildItem -LiteralPath $env:TEMP -Directory -ErrorAction SilentlyContinue | ForEach-Object {
         if (-not (Get-ChildItem -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue)) {
             Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue
@@ -2392,14 +2402,14 @@ function Invoke-FlowSchedule {
         }
         return
     }
-    # $PSCommandPath (không hardcode tên file): user đổi tên script (vd "WinTrash (1).ps1")
-    # thì task vẫn trỏ đúng file đang chạy; schtasks không validate /TR nên trỏ sai
-    # là fail im lặng vĩnh viễn dù báo tạo thành công
+    # $PSCommandPath (no hardcoded filename): if the user renamed the script (e.g.
+    # "WinTrash (1).ps1") the task still points at the running file; schtasks does not
+    # validate /TR, so a wrong path fails silently forever while creation reports success
     $scriptPath = $PSCommandPath
     $tr = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"{0}\" -Language {1} -Role User -Action scan' -f $scriptPath, $script:Language
-    # PS 7.3+ mặc định PSNativeCommandArgumentPassing='Windows' sẽ escape LẠI chuỗi \"
-    # thành \\\" -> task lưu literal \" quanh đường dẫn và không bao giờ chạy được.
-    # Ép 'Legacy' trong scope con để giữ đúng hành vi PS 5.1 (trên 5.1 gán biến này vô hại).
+    # PS 7.3+ defaults PSNativeCommandArgumentPassing='Windows', which RE-escapes the
+    # hand-written \" into \\\" -> the task stores literal \" around the path and never runs.
+    # Force 'Legacy' in a child scope to keep PS 5.1 behavior (assigning it on 5.1 is harmless).
     & {
         $PSNativeCommandArgumentPassing = 'Legacy'
         schtasks.exe /Create /SC MONTHLY /D 1 /ST 09:03 /TN $taskName /TR $tr /F 2>$null
@@ -2506,10 +2516,10 @@ function Invoke-FlowInstall {
         $ver = (& node --version) -replace '^v', ''
         if ([version]$ver -lt [version]'18.0') { Write-Host $L.NeedNode -ForegroundColor Red; return }
     } catch {}
-    # Chạy TRỰC TIẾP trong console (không spinner, không cửa sổ ẩn):
-    # - người dùng thấy tiến trình thật của npm/npx
-    # - installer TƯƠNG TÁC như Claudefy (có menu chọn) hoạt động bình thường
-    #   (trước đây chạy ẩn -> installer chờ phím trong cửa sổ vô hình = tưởng bị treo)
+    # Run DIRECTLY in the console (no spinner, no hidden window):
+    # - the user sees npm/npx's real progress
+    # - INTERACTIVE installers like Claudefy (with selection menus) work normally
+    #   (previously hidden -> installer waited for keys in an invisible window = looked hung)
     Write-Host ''
     Write-C ("═══ {0} {1} ═══" -f $L.Installing, $Package) -Color Cyan
     Write-Host ''
@@ -2532,7 +2542,7 @@ function Invoke-FlowInstall {
 # ════════════════════════ SELF-UPDATE ════════════════════════
 
 function Get-RemoteVersion {
-    # Đọc file VERSION trên GitHub - lỗi mạng thì trả null (bỏ qua êm)
+    # Read the VERSION file on GitHub - network errors return null (skipped quietly)
     try {
         $resp = Invoke-WebRequest -Uri ($script:UpdateRawBase + '/VERSION') -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
         return [version](([string]$resp.Content).Trim())
@@ -2540,7 +2550,7 @@ function Get-RemoteVersion {
 }
 
 function Get-RemoteChangelog {
-    # Đọc CHANGELOG.md trên GitHub - lỗi mạng thì trả null (bỏ qua êm, vẫn hỏi update)
+    # Read CHANGELOG.md on GitHub - network errors return null (skipped quietly, update prompt still shown)
     try {
         $resp = Invoke-WebRequest -Uri ($script:UpdateRawBase + '/CHANGELOG.md') -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
         return [string]$resp.Content
@@ -2548,17 +2558,17 @@ function Get-RemoteChangelog {
 }
 
 function ConvertTo-PaddedVersion {
-    # Chuẩn hóa [version] đủ 4 thành phần (1.4 == 1.4.0 == 1.4.0.0) - so sánh System.Version
-    # thô coi 1.4.0 > 1.4 (build 0 > build -1), làm rơi entry changelog khi VERSION và
-    # header lệch số thành phần
+    # Normalize [version] to all 4 components (1.4 == 1.4.0 == 1.4.0.0) - raw System.Version
+    # comparison treats 1.4.0 > 1.4 (build 0 > build -1), dropping changelog entries when
+    # VERSION and the header differ in component count
     param([version]$V)
     return [version]::new($V.Major, [Math]::Max(0, $V.Minor), [Math]::Max(0, $V.Build), [Math]::Max(0, $V.Revision))
 }
 
 function Get-ChangelogForUpdate {
-    # Trích từ CHANGELOG.md các mục có phiên bản NẰM TRONG (Current, Remote] - người dùng
-    # thấy đúng những gì mình sắp nhận, kể cả khi nhảy cóc nhiều bản. Hàm thuần túy để
-    # test không cần mạng; markdown rỗng/hỏng -> danh sách rỗng.
+    # Extract CHANGELOG.md entries whose version falls WITHIN (Current, Remote] - the user
+    # sees exactly what they are about to receive, even when skipping several releases.
+    # Pure function so tests need no network; empty/broken markdown -> empty list.
     param([string]$Markdown, [version]$Current, [version]$Remote)
     $out = [System.Collections.Generic.List[string]]::new()
     if ([string]::IsNullOrWhiteSpace($Markdown)) { return $out }
@@ -2577,13 +2587,13 @@ function Get-ChangelogForUpdate {
             if ($include) { $out.Add(('[{0}] {1}' -f $m.Groups[1].Value, $m.Groups[2].Value).TrimEnd()) }
             continue
         }
-        # Header h2 KHÁC ([Unreleased], ghi chú tự do...) là ranh giới section mới ->
-        # ngắt gom, nếu không nội dung của nó lọt nhầm vào bản phía trên
+        # Any OTHER h2 header ([Unreleased], free-form notes...) marks a new section ->
+        # stop collecting, or its content would leak into the release above it
         if ($line -match '^##($|[^#])') { $include = $false; continue }
         if (-not $include) { continue }
         $clean = ($line -replace '\*\*', '').TrimEnd()
         if ($clean -match '^#{3,}\s*(.*)$') { if ($Matches[1]) { $out.Add($Matches[1].Trim() + ':') }; continue }
-        if ($clean -match '^\[[^\]]+\]:') { continue }   # dòng link-reference kiểu keep-a-changelog
+        if ($clean -match '^\[[^\]]+\]:') { continue }   # keep-a-changelog style link-reference line
         if ($clean.Trim()) { $out.Add($clean) }
     }
     return $out
@@ -2594,12 +2604,12 @@ function Invoke-SelfUpdate {
     try {
         $tmp = Join-Path $env:TEMP 'WinTrash.new.ps1'
         Invoke-WebRequest -Uri ($script:UpdateRawBase + '/WinTrash.ps1') -OutFile $tmp -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
-        # Kiểm tra file tải về: phải parse được và đúng là WinTrash
+        # Validate the download: must parse and actually be WinTrash
         $errs = $null
         [void][System.Management.Automation.Language.Parser]::ParseFile($tmp, [ref]$null, [ref]$errs)
-        if ($errs.Count -gt 0) { throw 'file tải về bị lỗi cú pháp' }
-        if ((Get-Content -LiteralPath $tmp -Raw) -notmatch 'WinTrashVersion') { throw 'file tải về không hợp lệ' }
-        # Backup bản hiện tại rồi thay thế
+        if ($errs.Count -gt 0) { throw 'downloaded file has syntax errors' }
+        if ((Get-Content -LiteralPath $tmp -Raw) -notmatch 'WinTrashVersion') { throw 'downloaded file is not valid' }
+        # Back up the current copy, then replace it
         Copy-Item -LiteralPath $PSCommandPath -Destination ($PSCommandPath + '.bak') -Force
         Copy-Item -LiteralPath $tmp -Destination $PSCommandPath -Force
         return $true
@@ -2610,20 +2620,20 @@ function Invoke-SelfUpdate {
 }
 
 function Test-UpdatePrompt {
-    # Gọi sau khi chọn ngôn ngữ: có bản mới -> hiện "có gì mới" rồi hỏi update/skip.
-    # Trả $true nếu đã update (cần restart).
+    # Called after language selection: new version available -> show "what's new" then ask update/skip.
+    # Returns $true if updated (restart needed).
     param([hashtable]$L)
     Write-C $L.UpdateCheck -Color DarkGray
     Write-Host ''
     $remote = Get-RemoteVersion
     if (-not $remote -or $remote -le $script:WinTrashVersion) { return $false }
-    # Có gì mới giữa bản đang dùng và bản mới - tải/parse lỗi thì bỏ qua êm, vẫn hỏi update
+    # What's new between the running and the new version - download/parse errors skipped quietly, update prompt still shown
     $notes = @(Get-ChangelogForUpdate -Markdown (Get-RemoteChangelog) -Current $script:WinTrashVersion -Remote $remote)
     if ($notes.Count -gt 0) {
         Write-C ($L.UpdateWhatsNew -f $remote) -Color Cyan
         foreach ($line in ($notes | Select-Object -First 30)) {
-            # Bullet trong CHANGELOG có thể dài 500-700 ký tự - cắt bớt để 30 dòng logic
-            # không tràn thành hàng trăm dòng vật lý trên console hẹp
+            # CHANGELOG bullets can run 500-700 characters - truncate so 30 logical lines
+            # don't overflow into hundreds of physical lines on a narrow console
             if ($line.Length -gt 160) { $line = $line.Substring(0, 159) + '…' }
             $color = if ($line -match '^\[') { 'Yellow' } elseif ($line -match '^- ') { 'Gray' } else { 'DarkCyan' }
             Write-Host ('  ' + $line) -ForegroundColor $color
@@ -2641,7 +2651,7 @@ function Test-UpdatePrompt {
 
 # ════════════════════════ MAIN ════════════════════════
 
-# Chế độ test (Pester): dot-source script để lấy các hàm, không chạy main
+# Test mode (Pester): dot-source the script to load functions without running main
 if ($env:WINTRASH_TEST -eq '1') { return }
 
 $tagline = 'WinTrash Toolkit — Windows leftovers scanner & cleaner | MIT License'
@@ -2662,33 +2672,33 @@ function Invoke-OneAction {
     }
 }
 
-# ---- Chế độ chạy thẳng (-Action): không wizard, không Clear-Host ----
+# ---- Direct mode (-Action): no wizard, no Clear-Host ----
 if ($Action) {
-    if (-not $Language) { $Language = 'vi' }
+    if (-not $Language) { $Language = 'en' }
     if (-not $Role) { $Role = 'User' }
     $script:Language = $Language
     $L = $i18n[$Language]
     Show-Banner -Tagline $tagline
     Show-Spinner -Label $L.Init
     Invoke-OneAction -L $L -Key $Action
-    # Cửa sổ admin mở riêng cho clean-resume: giữ lại để người dùng đọc kết quả
+    # Separate admin window for clean-resume: keep it open so the user can read the results
     if ($Action -eq 'clean-resume' -and (Test-Interactive)) { Read-Host $L.PressEnter | Out-Null }
     return
 }
 
-# ---- Không tương tác mà cũng không có -Action: hướng dẫn rồi thoát ----
+# ---- Non-interactive and no -Action: print usage and exit ----
 if (-not (Test-Interactive)) {
-    $script:Language = if ($Language) { $Language } else { 'vi' }
+    $script:Language = if ($Language) { $Language } else { 'en' }
     Show-Banner -Tagline $tagline
-    Write-Host 'Console không tương tác. Dùng: .\WinTrash.ps1 -Language vi -Role User -Action scan|clean|temp|restore|downloads|schedule'
+    Write-Host 'Console is not interactive. Use: .\WinTrash.ps1 -Language en -Role User -Action scan|clean|temp|restore|downloads|schedule'
     return
 }
 
-# ---- WIZARD: mỗi bước một màn hình sạch (banner giữ trên đỉnh), có Quay lại ----
+# ---- WIZARD: one clean screen per step (banner kept on top), with Back ----
 function Show-WizardScreen {
-    Stop-LeakedSpinner      # dập spinner nền còn sót (nếu có) trước khi vẽ màn mới
-    Clear-PendingInput      # nuốt phím Enter bấm thừa để không nhảy màn hình
-    Clear-Screen            # xóa viewport + scrollback + con trỏ về (0,0)
+    Stop-LeakedSpinner      # kill any leftover background spinner before drawing a new screen
+    Clear-PendingInput      # swallow stray Enter presses so the screen doesn't jump
+    Clear-Screen            # clear viewport + scrollback + cursor to (0,0)
     Show-Banner -Tagline $tagline
 }
 
@@ -2696,7 +2706,7 @@ $langChoice = $Language
 $roleChoice = $Role
 
 while ($true) {
-    # Bước 1: chọn ngôn ngữ
+    # Step 1: choose language
     if (-not $langChoice) {
         Show-WizardScreen
         Write-Host $i18n.vi.ChooseLang -ForegroundColor Cyan
@@ -2706,22 +2716,22 @@ while ($true) {
         Write-Host '  4. Русский'
         $choice = Read-Host '>'
         $langChoice = switch ($choice) { '1' { 'vi' } '2' { 'en' } '3' { 'zh' } '4' { 'ru' } default { $null } }
-        if (-not $langChoice) { continue }   # gõ sai -> hỏi lại
+        if (-not $langChoice) { continue }   # invalid input -> ask again
     }
     $script:Language = $langChoice
     $L = $i18n[$langChoice]
 
-    # Kiểm tra cập nhật MỘT lần, ngay sau khi chọn ngôn ngữ
+    # Check for updates ONCE, right after language selection
     if (-not $script:updateChecked) {
         $script:updateChecked = $true
         if (Test-UpdatePrompt -L $L) {
-            # Đã thay file bằng bản mới -> chạy lại chính mình với ngôn ngữ đã chọn
+            # File replaced with the new version -> relaunch self with the chosen language
             & $PSCommandPath -Language $langChoice
             return
         }
     }
 
-    # Bước 2: chọn vai trò (0 = quay lại chọn ngôn ngữ)
+    # Step 2: choose role (0 = back to language selection)
     if (-not $roleChoice) {
         Show-WizardScreen
         Write-Host $L.ChooseRole -ForegroundColor Cyan
@@ -2735,7 +2745,7 @@ while ($true) {
     }
     $Role = $roleChoice
 
-    # Bước 3: menu chính (B = đổi ngôn ngữ/vai trò, 0 = thoát)
+    # Step 3: main menu (B = change language/role, 0 = exit)
     $menuItems = [System.Collections.Generic.List[object]]::new()
     $menuItems.Add(@{ Key = 'scan';      Label = $L.MenuScan })
     $menuItems.Add(@{ Key = 'clean';     Label = $L.MenuClean })

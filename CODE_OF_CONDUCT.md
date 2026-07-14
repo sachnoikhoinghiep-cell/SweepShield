@@ -1,43 +1,43 @@
-# Quy tắc ứng xử
+# Code of Conduct
 
-## Cam kết
+## Our Pledge
 
-Với tư cách thành viên, người đóng góp và người điều hành dự án, chúng tôi cam kết xây dựng một cộng đồng không quấy rối cho tất cả mọi người, bất kể tuổi tác, ngoại hình, khuyết tật, dân tộc, giới tính, trình độ kinh nghiệm, học vấn, địa vị kinh tế, quốc tịch, tôn giáo hay xu hướng tính dục.
+As members, contributors, and leaders of this project, we pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, religion, or sexual identity and orientation.
 
-Chúng tôi cam kết hành xử theo hướng góp phần tạo nên một cộng đồng cởi mở, thân thiện, đa dạng và lành mạnh.
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, and healthy community.
 
-## Tiêu chuẩn
+## Our Standards
 
-Hành vi góp phần xây dựng môi trường tích cực:
+Behavior that contributes to a positive environment:
 
-- Thể hiện sự đồng cảm và tử tế với người khác
-- Tôn trọng các ý kiến, góc nhìn và trải nghiệm khác biệt
-- Đưa ra và tiếp nhận góp ý mang tính xây dựng một cách thiện chí
-- Nhận trách nhiệm và xin lỗi những người bị ảnh hưởng bởi sai sót của mình, rút kinh nghiệm từ đó
-- Đặt lợi ích chung của cộng đồng lên trên lợi ích cá nhân
+- Demonstrating empathy and kindness toward other people
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
+- Focusing on what is best for the overall community rather than individual interests
 
-Hành vi không được chấp nhận:
+Unacceptable behavior:
 
-- Ngôn từ hoặc hình ảnh khiêu dâm; gạ gẫm hay tán tỉnh dưới mọi hình thức
-- Chế nhạo (trolling), bình luận xúc phạm hoặc hạ thấp người khác, công kích cá nhân hay công kích quan điểm chính trị
-- Quấy rối công khai hoặc riêng tư
-- Công bố thông tin cá nhân của người khác (địa chỉ, email...) khi chưa được cho phép
-- Các hành vi khác có thể bị xem là không phù hợp trong môi trường chuyên nghiệp
+- The use of sexualized language or imagery, and sexual attention or advances of any kind
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information (address, email...) without their explicit permission
+- Other conduct which could reasonably be considered inappropriate in a professional setting
 
-## Trách nhiệm thực thi
+## Enforcement Responsibilities
 
-Người điều hành dự án có trách nhiệm làm rõ và thực thi các tiêu chuẩn trên, và sẽ có biện pháp xử lý phù hợp, công bằng với mọi hành vi bị xem là không phù hợp, đe dọa, xúc phạm hoặc gây hại.
+Project maintainers are responsible for clarifying and enforcing these standards, and will take appropriate and fair corrective action in response to any behavior they deem inappropriate, threatening, offensive, or harmful.
 
-Người điều hành có quyền xóa, sửa hoặc từ chối bình luận, commit, code, chỉnh sửa wiki, issue và các đóng góp khác không phù hợp với Quy tắc ứng xử này, và sẽ nêu lý do khi thích hợp.
+Maintainers have the right to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned with this Code of Conduct, and will communicate reasons when appropriate.
 
-## Phạm vi
+## Scope
 
-Quy tắc này áp dụng trong mọi không gian của dự án (issue, pull request, thảo luận...) và cả khi một cá nhân đại diện chính thức cho dự án ở không gian công cộng.
+This Code of Conduct applies within all project spaces (issues, pull requests, discussions...) and also when an individual is officially representing the project in public spaces.
 
-## Báo cáo
+## Reporting
 
-Hành vi lạm dụng, quấy rối hoặc không phù hợp có thể được báo cáo cho người điều hành dự án qua email **hoanganhuet@hotmail.com**. Mọi báo cáo sẽ được xem xét và xử lý nhanh chóng, công bằng; danh tính người báo cáo được giữ kín.
+Abusive, harassing, or otherwise inappropriate behavior may be reported to the project maintainers at **hoanganhuet@hotmail.com**. All reports will be reviewed and handled promptly and fairly; the reporter's identity is kept confidential.
 
-## Ghi công
+## Attribution
 
-Quy tắc ứng xử này phỏng theo [Contributor Covenant](https://www.contributor-covenant.org), phiên bản 2.1: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html

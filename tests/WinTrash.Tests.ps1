@@ -1,6 +1,6 @@
-﻿# Pester 5 tests cho các hàm thuần túy của WinTrash.ps1
-# Chạy: Invoke-Pester -Path tests\
-# Cơ chế: đặt WINTRASH_TEST=1 rồi dot-source script -> chỉ nạp hàm, không chạy main.
+﻿# Pester 5 tests for WinTrash.ps1's pure functions
+# Run: Invoke-Pester -Path tests\
+# Mechanism: set WINTRASH_TEST=1 then dot-source the script -> loads functions only, main does not run.
 
 BeforeAll {
     $env:WINTRASH_TEST = '1'
@@ -12,66 +12,66 @@ AfterAll {
 }
 
 Describe 'Remove-Diacritics' {
-    It 'bỏ dấu tiếng Việt: Cốc Cốc -> Coc Coc' {
+    It 'strips Vietnamese diacritics: Cốc Cốc -> Coc Coc' {
         Remove-Diacritics -Text 'Cốc Cốc' | Should -Be 'Coc Coc'
     }
-    It 'xử lý chữ đ/Đ' {
+    It 'handles the đ/Đ letters' {
         Remove-Diacritics -Text 'Đường dẫn' | Should -Be 'Duong dan'
     }
-    It 'giữ nguyên chuỗi ASCII' {
+    It 'leaves ASCII strings untouched' {
         Remove-Diacritics -Text 'Hello World 123' | Should -Be 'Hello World 123'
     }
 }
 
 Describe 'Get-NameTokens' {
-    It 'tách token và lowercase' {
+    It 'tokenizes and lowercases' {
         Get-NameTokens -Text 'Adobe Photoshop 2025' | Should -Contain 'adobe'
         Get-NameTokens -Text 'Adobe Photoshop 2025' | Should -Contain 'photoshop'
     }
-    It 'loại stop-words' {
+    It 'removes stop-words' {
         Get-NameTokens -Text 'The Software Company Inc' | Should -Not -Contain 'the'
         Get-NameTokens -Text 'The Software Company Inc' | Should -Not -Contain 'software'
     }
-    It 'bỏ dấu trước khi tách: Cốc Cốc -> coc' {
+    It 'strips diacritics before tokenizing: Cốc Cốc -> coc' {
         Get-NameTokens -Text 'Cốc Cốc' | Should -Contain 'coc'
     }
-    It 'chuỗi rỗng trả về mảng rỗng' {
+    It 'empty string returns an empty array' {
         @(Get-NameTokens -Text '') | Should -HaveCount 0
     }
 }
 
 Describe 'Resolve-CommandPath' {
-    It 'đường dẫn có nháy kép + tham số' {
+    It 'quoted path + arguments' {
         Resolve-CommandPath -CommandLine '"C:\Program Files\App\app.exe" --flag' |
             Should -Be 'C:\Program Files\App\app.exe'
     }
-    It 'đường dẫn thật không nháy (cmd.exe có thật)' {
+    It 'real unquoted path (cmd.exe exists)' {
         $result = Resolve-CommandPath -CommandLine "$env:SystemRoot\System32\cmd.exe /c echo hi"
         $result | Should -Be "$env:SystemRoot\System32\cmd.exe"
     }
-    It 'không sập với nháy kép giữa lệnh (bug cmd /c "rmdir")' {
+    It 'does not crash on quotes mid-command (cmd /c "rmdir" bug)' {
         { Resolve-CommandPath -CommandLine 'C:\App\run.exe \c "rmdir \S \Q C:\x"' } | Should -Not -Throw
     }
-    It 'đường dẫn không nháy có dấu cách, exe đã mất -> bắt theo đuôi .exe' {
+    It 'unquoted path with spaces, exe gone -> caught by the .exe suffix' {
         Resolve-CommandPath -CommandLine 'C:\Program Files\Gone App\gone.exe %1' |
             Should -Be 'C:\Program Files\Gone App\gone.exe'
     }
-    It 'chuỗi rỗng trả về null' {
+    It 'empty string returns null' {
         Resolve-CommandPath -CommandLine '' | Should -BeNullOrEmpty
     }
 }
 
 Describe 'Test-ExeMissing' {
-    It 'file có thật -> false' {
+    It 'existing file -> false' {
         Test-ExeMissing -ExePath "$env:SystemRoot\System32\cmd.exe" | Should -BeFalse
     }
-    It 'file không tồn tại -> true' {
+    It 'non-existent file -> true' {
         Test-ExeMissing -ExePath 'C:\definitely\not\here\ghost.exe' | Should -BeTrue
     }
-    It 'đường dẫn chứa ký tự bất hợp lệ -> false (không báo nhầm)' {
+    It 'path with invalid characters -> false (no false positive)' {
         Test-ExeMissing -ExePath 'C:\App\x.exe \c "rm"' | Should -BeFalse
     }
-    It 'chuỗi rỗng -> false' {
+    It 'empty string -> false' {
         Test-ExeMissing -ExePath '' | Should -BeFalse
     }
 }
@@ -83,26 +83,26 @@ Describe 'ConvertTo-RegExePath' {
     It 'HKCU: -> HKEY_CURRENT_USER' {
         ConvertTo-RegExePath -PSPath 'HKCU:\Environment' | Should -Be 'HKEY_CURRENT_USER\Environment'
     }
-    It 'bóc prefix Registry::' {
+    It 'strips the Registry:: prefix' {
         ConvertTo-RegExePath -PSPath 'Registry::HKEY_CLASSES_ROOT\zax' | Should -Be 'HKEY_CLASSES_ROOT\zax'
     }
-    It 'bóc prefix Microsoft.PowerShell.Core' {
+    It 'strips the Microsoft.PowerShell.Core prefix' {
         ConvertTo-RegExePath -PSPath 'Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\X' |
             Should -Be 'HKEY_LOCAL_MACHINE\X'
     }
 }
 
 Describe 'Get-FindingId' {
-    It 'sinh ID ổn định Category|Name|Target' {
+    It 'produces a stable Category|Name|Target ID' {
         $f = [PSCustomObject]@{ Category = 'Path'; Name = 'User #3'; Target = 'C:\x' }
         Get-FindingId $f | Should -Be 'Path|User #3|C:\x'
     }
 }
 
 Describe 'Get-SeverityColor' {
-    It 'High -> Red'    { Get-SeverityColor -Severity 'High'   | Should -Be ([ConsoleColor]::Red) }
+    It 'High -> Red'      { Get-SeverityColor -Severity 'High'   | Should -Be ([ConsoleColor]::Red) }
     It 'Medium -> Yellow' { Get-SeverityColor -Severity 'Medium' | Should -Be ([ConsoleColor]::Yellow) }
-    It 'Info -> Blue'   { Get-SeverityColor -Severity 'Info'   | Should -Be ([ConsoleColor]::Blue) }
+    It 'Info -> Blue'     { Get-SeverityColor -Severity 'Info'   | Should -Be ([ConsoleColor]::Blue) }
 }
 
 Describe 'Get-ChangelogForUpdate' {
@@ -112,92 +112,93 @@ Describe 'Get-ChangelogForUpdate' {
 
 ## [1.3.0] - 2026-07-09
 
-### Thêm
-- **Quét Docker**: phát hiện tàn dư Docker Desktop.
+### Added
+- **Docker scan**: detects Docker Desktop leftovers.
 
 ## [1.2.2] - 2026-07-07
 
-### Sửa
-- **Lỗi X**: đã sửa xong.
+### Fixed
+- **Bug X**: now fixed.
 
 ## [1.0.0] - 2026-07-06
 
-Phiên bản đầu tiên.
+First release.
 "@
     }
-    It 'chỉ lấy các bản trong khoảng (Current, Remote]' {
+    It 'only includes releases within (Current, Remote]' {
         $r = @(Get-ChangelogForUpdate -Markdown $sampleMd -Current ([version]'1.2.2') -Remote ([version]'1.3.0'))
         ($r -join "`n") | Should -Match '\[1\.3\.0\]'
         ($r -join "`n") | Should -Not -Match '\[1\.2\.2\]'
         ($r -join "`n") | Should -Not -Match '\[1\.0\.0\]'
     }
-    It 'gộp đủ các bản khi người dùng nhảy cóc nhiều phiên bản' {
+    It 'aggregates all releases when the user skips several versions' {
         $r = @(Get-ChangelogForUpdate -Markdown $sampleMd -Current ([version]'1.0.0') -Remote ([version]'1.3.0'))
         ($r -join "`n") | Should -Match '\[1\.3\.0\]'
         ($r -join "`n") | Should -Match '\[1\.2\.2\]'
         ($r -join "`n") | Should -Not -Match '\[1\.0\.0\]'
     }
-    It 'bỏ markdown đậm ** nhưng giữ nội dung' {
+    It 'strips ** bold markdown but keeps the content' {
         $r = @(Get-ChangelogForUpdate -Markdown $sampleMd -Current ([version]'1.2.2') -Remote ([version]'1.3.0'))
         ($r -join "`n") | Should -Not -Match '\*\*'
-        ($r -join "`n") | Should -Match 'Quét Docker'
-        ($r -join "`n") | Should -Match 'Thêm:'
+        ($r -join "`n") | Should -Match 'Docker scan'
+        ($r -join "`n") | Should -Match 'Added:'
     }
-    It 'markdown rỗng/null -> danh sách rỗng, không ném lỗi' {
+    It 'empty/null markdown -> empty list, no throw' {
         @(Get-ChangelogForUpdate -Markdown '' -Current ([version]'1.0') -Remote ([version]'2.0')) | Should -HaveCount 0
         @(Get-ChangelogForUpdate -Markdown $null -Current ([version]'1.0') -Remote ([version]'2.0')) | Should -HaveCount 0
     }
-    It 'header phiên bản không hợp lệ thì bỏ qua, không sập' {
-        $bad = "## [abc] - hỏng`n- dòng rác`n## [2.0.0]`n- dòng thật"
+    It 'invalid version headers are skipped without crashing' {
+        $bad = "## [abc] - broken`n- junk line`n## [2.0.0]`n- real line"
         $r = @(Get-ChangelogForUpdate -Markdown $bad -Current ([version]'1.0') -Remote ([version]'2.0.0'))
-        ($r -join "`n") | Should -Match 'dòng thật'
-        ($r -join "`n") | Should -Not -Match 'dòng rác'
+        ($r -join "`n") | Should -Match 'real line'
+        ($r -join "`n") | Should -Not -Match 'junk line'
     }
-    It 'section ## không phải phiên bản đặt SAU bản được chọn không lọt vào notes' {
-        $md2 = "## [1.5.0]`n- muc moi`n## [Unreleased]`n- chua phat hanh`n## Ghi chu`n- linh tinh"
+    It 'non-version ## sections AFTER a selected release do not leak into the notes' {
+        $md2 = "## [1.5.0]`n- new item`n## [Unreleased]`n- not released`n## Notes`n- misc"
         $r = @(Get-ChangelogForUpdate -Markdown $md2 -Current ([version]'1.0') -Remote ([version]'2.0'))
-        ($r -join "`n") | Should -Match 'muc moi'
-        ($r -join "`n") | Should -Not -Match 'chua phat hanh'
-        ($r -join "`n") | Should -Not -Match 'linh tinh'
+        ($r -join "`n") | Should -Match 'new item'
+        ($r -join "`n") | Should -Not -Match 'not released'
+        ($r -join "`n") | Should -Not -Match 'misc'
     }
-    It 'dòng link-reference kiểu keep-a-changelog bị loại' {
-        $md3 = "## [1.5.0]`n- muc moi`n[1.5.0]: https://example.com/diff"
+    It 'keep-a-changelog style link-reference lines are dropped' {
+        $md3 = "## [1.5.0]`n- new item`n[1.5.0]: https://example.com/diff"
         $r = @(Get-ChangelogForUpdate -Markdown $md3 -Current ([version]'1.0') -Remote ([version]'2.0'))
         ($r -join "`n") | Should -Not -Match 'example.com'
     }
-    It 'VERSION 2 thành phần vẫn khớp header 3 thành phần (1.4 vs [1.4.0])' {
-        $md4 = "## [1.4.0]`n- noi dung ban moi"
+    It '2-component VERSION still matches a 3-component header (1.4 vs [1.4.0])' {
+        $md4 = "## [1.4.0]`n- new release content"
         $r = @(Get-ChangelogForUpdate -Markdown $md4 -Current ([version]'1.3.0') -Remote ([version]'1.4'))
-        ($r -join "`n") | Should -Match 'noi dung ban moi'
+        ($r -join "`n") | Should -Match 'new release content'
     }
 }
 
 Describe 'ConvertTo-PaddedVersion' {
-    It 'đủ 4 thành phần, thiếu điền 0' {
+    It 'pads to 4 components, missing ones become 0' {
         ConvertTo-PaddedVersion ([version]'1.4') | Should -Be ([version]'1.4.0.0')
         ConvertTo-PaddedVersion ([version]'1.4.0') | Should -Be ([version]'1.4.0.0')
         ConvertTo-PaddedVersion ([version]'2.0.1.7') | Should -Be ([version]'2.0.1.7')
     }
-    It '1.4 và 1.4.0 so sánh bằng nhau sau chuẩn hóa' {
+    It '1.4 and 1.4.0 compare equal after normalization' {
         (ConvertTo-PaddedVersion ([version]'1.4')) -eq (ConvertTo-PaddedVersion ([version]'1.4.0')) | Should -BeTrue
     }
 }
 
-Describe 'Danh sách module quét' {
-    It 'có đúng 18 module, gồm Docker và WSL' {
+Describe 'Scan module list' {
+    It 'has exactly 18 modules, including Docker and WSL' {
         @($scanModules).Count | Should -Be 18
         @($scanModules | ForEach-Object { $_.Name }) | Should -Contain 'Docker'
         @($scanModules | ForEach-Object { $_.Name }) | Should -Contain 'WSL'
     }
 }
 
-Describe 'Regression issue #1: cấm GetNewClosure' {
-    It 'WinTrash.ps1 không chứa lời gọi .GetNewClosure()' {
-        # GetNewClosure buộc scriptblock vào dynamic module; tra cứu lệnh trong module
-        # chỉ đi module -> global, BỎ QUA script scope. Chạy script kiểu `.\WinTrash.ps1`
-        # (hàm nằm ở script scope, khác với -File đặt hàm vào global) thì mọi hàm của
-        # script "biến mất" bên trong closure -> "Write-StatusLine is not recognized"
-        # ngay giữa lúc dọn (issue #1). Block thường đã giữ nguyên session state, đủ dùng.
+Describe 'Regression issue #1: GetNewClosure is banned' {
+    It 'WinTrash.ps1 contains no .GetNewClosure() calls' {
+        # GetNewClosure binds a scriptblock to a dynamic module; command lookup inside a
+        # module only walks module -> global, SKIPPING script scope. Running the script as
+        # `.\WinTrash.ps1` (functions live in script scope, unlike -File which puts them
+        # in global) makes every script function "disappear" inside the closure ->
+        # "Write-StatusLine is not recognized" mid-cleanup (issue #1). Plain blocks keep
+        # the original session state, which is all we need.
         $tokens = $null; $errors = $null
         $ast = [System.Management.Automation.Language.Parser]::ParseFile(
             (Join-Path $PSScriptRoot '..\WinTrash.ps1'), [ref]$tokens, [ref]$errors)

@@ -1,34 +1,34 @@
-name: Đề xuất tính năng (Feature request)
-description: Ý tưởng tính năng mới hoặc cải tiến tính năng có sẵn (Suggest an idea)
+name: Feature request
+description: An idea for a new feature or an improvement to an existing one
 title: "[Feature] "
 labels: ["enhancement"]
 body:
   - type: textarea
     id: problem
     attributes:
-      label: Vấn đề bạn muốn giải quyết
-      description: Tính năng này giúp gì? Hiện tại bạn đang phải làm thủ công ra sao?
-      placeholder: "Ví dụ: máy tôi có nhiều tàn dư của X mà tool chưa quét được..."
+      label: The problem you want to solve
+      description: What would this feature help with? What are you currently doing manually?
+      placeholder: "Example: my machine has lots of leftovers from X that the tool doesn't scan yet..."
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Giải pháp mong muốn
-      description: Mô tả cách bạn hình dung tính năng hoạt động
+      label: Desired solution
+      description: Describe how you imagine the feature working
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Phương án thay thế đã cân nhắc
-      description: Tool/cách làm khác bạn đã thử và vì sao chưa ổn
+      label: Alternatives considered
+      description: Other tools/approaches you tried and why they fell short
     validations:
       required: false
   - type: checkboxes
     id: safety
     attributes:
-      label: Nguyên tắc an toàn
+      label: Safety principles
       options:
-        - label: Tính năng này tôn trọng nguyên tắc của tool - không tự động xóa, mọi thao tác xóa phải qua checkbox + xác nhận + backup
+        - label: This feature respects the tool's principles - no automatic deletion; every deletion goes through checkbox + confirmation + backup
           required: true

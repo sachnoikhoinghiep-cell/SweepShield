@@ -1,30 +1,30 @@
-# Chính sách bảo mật
+# Security Policy
 
-## Phiên bản được hỗ trợ
+## Supported versions
 
-Chỉ phiên bản mới nhất trên nhánh `main` được hỗ trợ vá lỗi bảo mật. Script có cơ chế tự cập nhật: chạy `WinTrash.ps1`, sau bước chọn ngôn ngữ tool sẽ tự so phiên bản và đề nghị cập nhật khi có bản mới.
+Only the latest version on the `main` branch receives security fixes. The script has a self-update mechanism: run `WinTrash.ps1`, and after language selection the tool compares versions and offers an update when a new one exists.
 
-| Phiên bản | Hỗ trợ |
+| Version | Supported |
 | --------- | ------ |
-| Mới nhất (main) | Có |
-| Cũ hơn | Không — hãy cập nhật |
+| Latest (main) | Yes |
+| Older | No — please update |
 
-## Báo cáo lỗ hổng
+## Reporting a vulnerability
 
-**Đừng mở issue công khai cho lỗ hổng bảo mật.** Thay vào đó:
+**Do not open a public issue for security vulnerabilities.** Instead:
 
-- Dùng tab **Security → Report a vulnerability** của repo (báo cáo riêng tư), hoặc
-- Email: **hoanganhuet@hotmail.com** với tiêu đề bắt đầu bằng `[SECURITY]`
+- Use the repo's **Security → Report a vulnerability** tab (private report), or
+- Email: **hoanganhuet@hotmail.com** with a subject starting with `[SECURITY]`
 
-Vui lòng mô tả: điều kiện tái hiện, phạm vi ảnh hưởng (file/registry nào bị đụng tới), và bản WinTrash + PowerShell bạn dùng. Bạn sẽ nhận phản hồi trong vòng 7 ngày; lỗ hổng xác nhận sẽ được vá sớm nhất có thể và ghi công người báo cáo (nếu muốn) trong CHANGELOG.
+Please describe: reproduction conditions, impact scope (which files/registry keys are touched), and the WinTrash + PowerShell versions you used. You will get a response within 7 days; confirmed vulnerabilities are patched as soon as possible with reporter credit (if desired) in the CHANGELOG.
 
-## Thiết kế an toàn của tool
+## The tool's safety design
 
-Các nguyên tắc mà mọi thay đổi code đều phải giữ — nếu bạn thấy hành vi vi phạm những điều dưới đây thì đó là bug bảo mật, hãy báo:
+Principles every code change must preserve — if you observe behavior violating any of these, it is a security bug, please report it:
 
-- **Quét chỉ đọc.** Bước scan không sửa/xóa bất cứ thứ gì trên hệ thống.
-- **Không tự động xóa.** Mọi mục xóa phải được người dùng tick chọn thủ công và xác nhận y/N lần cuối.
-- **Luôn backup trước khi xóa**: registry export `.reg`, scheduled task export `.xml`, PATH gốc lưu file, file/thư mục vào Recycle Bin — tất cả trong `WinTrashBackups\<timestamp>\`, khôi phục được bằng `-Action restore`.
-- **Không thu thập dữ liệu.** Tool không gửi bất kỳ thông tin nào ra ngoài. Kết nối mạng duy nhất là đọc file `VERSION` và tải bản mới từ chính repo GitHub này khi bạn đồng ý cập nhật.
-- **Chứng chỉ (Certs) không bao giờ bị xóa tự động** — chỉ báo cáo để bạn tự xử lý qua `certmgr.msc`.
-- Mã nguồn là **một file PowerShell duy nhất, không obfuscate** — bạn có thể (và nên) đọc trước khi chạy.
+- **Read-only scanning.** The scan step never modifies or deletes anything on the system.
+- **No automatic deletion.** Every deleted item must be manually ticked by the user and confirmed with a final y/N.
+- **Always back up before deleting**: registry exports as `.reg`, scheduled task exports as `.xml`, the original PATH saved to a file, files/folders to the Recycle Bin — all under `WinTrashBackups\<timestamp>\`, restorable via `-Action restore`.
+- **No data collection.** The tool sends nothing anywhere. Its only network activity is reading the `VERSION` file and downloading updates from this very GitHub repo when you accept an update.
+- **Certificates are never deleted automatically** — reported only, for you to handle via `certmgr.msc`.
+- The source is **a single, non-obfuscated PowerShell file** — you can (and should) read it before running.
