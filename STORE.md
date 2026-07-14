@@ -43,6 +43,74 @@ The codebase is now **technically Store-ready**: the two hard blockers (read-onl
 - **The code is MIT-licensed and public.** Anyone can legally take it, rebrand it, and publish it free — you cannot stop that with MIT. If the paid Store listing matters commercially, consider: keeping MIT for the GitHub version but selling the Store build for *convenience + auto-updates + support* (a common, honest model), or re-licensing future versions (you can — you hold the copyright, but contributors' PRs would need CLA/consent).
 - Alternative that avoids Store friction entirely: keep it free on the Store and monetize support/pro features elsewhere.
 
+## Store listing copy (Description, 4 languages)
+
+Ready to paste into Partner Center → Store listings. One listing per language; the short summary line doubles as the "short description" field where offered. Kept deliberately factual — no fear-based cleaner marketing (policy 10.1).
+
+### English (en-us)
+
+> **Find what uninstalled apps left behind — and remove only what you choose.**
+>
+> SweepShield scans 18 kinds of Windows leftovers: dead PATH entries, orphaned AppData/ProgramData folders, broken services and scheduled tasks, ghost Add/Remove entries, dead shortcuts, orphaned firewall rules, stale Defender exclusions, Docker and WSL remnants, and more.
+>
+> Nothing is ever deleted automatically. You review every finding in a checkbox list, confirm, and only then does SweepShield act — after backing everything up first (.reg exports, task XML, Recycle Bin) with one-click restore.
+>
+> - Read-only scan with an HTML report
+> - Pick items one by one — severity-coded High / Medium / Info
+> - Every deletion backed up, fully restorable
+> - Scan history: see what's new since last time
+> - Safe temp cleanup, Downloads organizer, monthly scan schedule
+> - Developer mode: find caches of uninstalled toolchains (npm, NuGet, Gradle...)
+> - No data collection. This app makes no network connections.
+
+### Tiếng Việt (vi)
+
+> **Tìm những gì ứng dụng đã gỡ còn để lại — và chỉ xóa thứ bạn chọn.**
+>
+> SweepShield quét 18 loại tàn dư trên Windows: PATH chết, thư mục AppData/ProgramData mồ côi, service và scheduled task hỏng, mục "ma" trong Add/Remove, shortcut chết, firewall rule mồ côi, Defender exclusion lỗi thời, tàn dư Docker và WSL...
+>
+> Không có gì bị xóa tự động. Bạn duyệt từng mục trong danh sách checkbox, xác nhận, rồi SweepShield mới thực hiện — và luôn backup trước (.reg, XML của task, Recycle Bin) kèm khôi phục một chạm.
+>
+> - Quét chỉ đọc, xuất báo cáo HTML
+> - Chọn từng mục — phân mức High / Đỏ, Medium / Vàng, Info / Xanh
+> - Mọi thao tác xóa đều có backup, khôi phục được
+> - Lịch sử quét: biết máy phát sinh gì so với lần trước
+> - Dọn Temp an toàn, sắp xếp Downloads, lịch quét hàng tháng
+> - Chế độ Developer: tìm cache của toolchain đã gỡ (npm, NuGet, Gradle...)
+> - Không thu thập dữ liệu. Ứng dụng không kết nối mạng.
+
+### 中文 (zh-cn)
+
+> **找出已卸载应用的残留 — 只删除你选中的内容。**
+>
+> SweepShield 扫描 Windows 上 18 类残留：失效的 PATH 条目、孤立的 AppData/ProgramData 文件夹、损坏的服务和计划任务、"幽灵"卸载条目、失效快捷方式、孤立防火墙规则、过期的 Defender 排除项、Docker 和 WSL 残留等。
+>
+> 绝不自动删除任何内容。你在复选框列表中逐项审阅并确认后，SweepShield 才会执行 — 且始终先备份（.reg 导出、任务 XML、回收站），支持一键还原。
+>
+> - 只读扫描，生成 HTML 报告
+> - 逐项选择 — 按 High / Medium / Info 级别着色
+> - 每次删除都有备份，可完整还原
+> - 扫描历史：对比上次，看新增了什么
+> - 安全清理临时文件、整理下载文件夹、每月定时扫描
+> - 开发者模式：发现已卸载工具链的缓存（npm、NuGet、Gradle 等）
+> - 不收集任何数据。本应用不进行任何网络连接。
+
+### Русский (ru)
+
+> **Найдите то, что оставили удалённые программы, — и удалите только то, что выберете сами.**
+>
+> SweepShield сканирует 18 типов остатков в Windows: мёртвые записи PATH, осиротевшие папки AppData/ProgramData, сломанные службы и задания планировщика, «призрачные» записи в списке программ, битые ярлыки, осиротевшие правила брандмауэра, устаревшие исключения Defender, остатки Docker и WSL и другое.
+>
+> Ничего не удаляется автоматически. Вы просматриваете каждую находку в списке с флажками, подтверждаете — и только тогда SweepShield действует, предварительно создав резервную копию (.reg, XML заданий, Корзина) с восстановлением в один шаг.
+>
+> - Сканирование только для чтения + HTML-отчёт
+> - Выбор по одному пункту — уровни High / Medium / Info
+> - Каждое удаление с резервной копией, всё восстановимо
+> - История сканирований: что изменилось с прошлого раза
+> - Безопасная очистка Temp, организация «Загрузок», ежемесячное сканирование
+> - Режим разработчика: кэши удалённых тулчейнов (npm, NuGet, Gradle...)
+> - Никакого сбора данных. Приложение не выходит в сеть.
+
 ## Files in this repo
 
 ```
