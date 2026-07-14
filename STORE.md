@@ -19,10 +19,10 @@ The codebase is now **technically Store-ready**: the two hard blockers (read-onl
 ## What YOU still need to do **[you]**
 
 1. **Partner Center developer account** — one-time US$19 (individual) / US$99 (company): https://partner.microsoft.com/dashboard. Company accounts need business verification (days to weeks).
-2. **Reserve the app name** (Partner Center → Apps → New product). "SweepShield" must be available.
-3. **Copy the product identity** (Package/Identity/Name, Publisher CN, PublisherDisplayName) into `store/build-msix.ps1` parameters and build:
+2. ~~Reserve the app name~~ **Done** — reserved in Partner Center.
+3. ~~Copy the product identity~~ **Done** — the identity is baked into `store/build-msix.ps1` as defaults (Name `TomAI.SweepShield`, Publisher `CN=431D41F0-2AFB-438F-AABB-C5BB925847C9`, display "Tom AI"). Just run:
    ```powershell
-   .\store\build-msix.ps1 -IdentityName '12345You.SweepShield' -Publisher 'CN=xxxx' -PublisherDisplay 'Your Name'
+   .\store\build-msix.ps1
    ```
    Requires the Windows 10/11 SDK for `makeappx.exe` (`winget install Microsoft.WindowsSDK.10.0.26100`).
 4. **Icons are done** — `store/Assets/` holds the real app icon (44×44, 150×150, 50×50, generated from `assets/icon.png`), and the launcher exe embeds `store/icon.ico`. Still needed from you: **1080p screenshots** for the listing.

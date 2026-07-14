@@ -20,11 +20,12 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$IdentityName     = 'REPLACE.FromPartnerCenter',
-    [string]$Publisher        = 'CN=REPLACE-FROM-PARTNER-CENTER',
-    [string]$PublisherDisplay = 'REPLACE Publisher Display Name',
+    # Defaults = the reserved product identity from Partner Center
+    [string]$IdentityName     = 'TomAI.SweepShield',
+    [string]$Publisher        = 'CN=431D41F0-2AFB-438F-AABB-C5BB925847C9',
+    [string]$PublisherDisplay = 'Tom AI',
     [string]$PfxPath,
-    [string]$PfxPassword
+    [securestring]$PfxPassword
 )
 
 $ErrorActionPreference = 'Stop'
@@ -105,7 +106,8 @@ if ($PfxPath) {
     $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
         Sort-Object FullName -Descending | Select-Object -First 1
     if (-not $signtool) { Write-Warning 'signtool.exe not found - skipping signing.'; return }
-    & $signtool.FullName sign /fd SHA256 /f $PfxPath /p $PfxPassword $msix
+    $plain = if ($PfxPassword) { [System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToGlobalAllocUnicode($PfxPassword)) } else { '' }
+    & $signtool.FullName sign /fd SHA256 /f $PfxPath /p $plain $msix
     Write-Host '√ Signed for sideload testing.' -ForegroundColor Green
 } else {
     Write-Host 'Note: unsigned package - fine for Store submission (Microsoft signs it), required to sign only for local sideload testing.' -ForegroundColor DarkGray
