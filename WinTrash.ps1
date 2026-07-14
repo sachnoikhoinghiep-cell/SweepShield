@@ -50,8 +50,35 @@ $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
-$script:WinTrashVersion = [version]'1.3.1'
+$script:WinTrashVersion = [version]'1.4.0'
 $script:UpdateRawBase = 'https://raw.githubusercontent.com/hasoftware/WinTrash/main'
+
+# Packaged mode (MSIX / Microsoft Store): the install folder under WindowsApps is
+# read-only and Store policy requires updates to ship through the Store itself
+$script:IsPackaged = ($PSScriptRoot -match '\\WindowsApps\\') -or ($env:WINTRASH_PACKAGED -eq '1')
+
+function Get-WritableDataRoot {
+    # Where backups/scan history/reports/ignore list live.
+    # Priority: WINTRASH_DATA_DIR env var -> the script's folder (portable mode,
+    # historical behavior) -> %LOCALAPPDATA%\WinTrash when the script folder is
+    # read-only (Program Files, MSIX WindowsApps...).
+    if ($env:WINTRASH_DATA_DIR) {
+        $dir = $env:WINTRASH_DATA_DIR
+        if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force -ErrorAction SilentlyContinue | Out-Null }
+        return $dir
+    }
+    $probe = Join-Path $PSScriptRoot ('.wintrash_probe_{0}' -f [guid]::NewGuid().ToString('N'))
+    try {
+        [System.IO.File]::WriteAllText($probe, '1')
+        Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue
+        return $PSScriptRoot
+    } catch {
+        $dir = Join-Path $env:LOCALAPPDATA 'WinTrash'
+        if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+        return $dir
+    }
+}
+$script:DataRoot = Get-WritableDataRoot
 
 # ════════════════════════════ I18N ════════════════════════════
 $i18n = @{
@@ -995,7 +1022,7 @@ function Get-FindingId {
     return '{0}|{1}|{2}' -f $Finding.Category, $Finding.Name, $Finding.Target
 }
 
-$script:ignoreFile = Join-Path $PSScriptRoot 'wintrash.ignore.json'
+$script:ignoreFile = Join-Path $script:DataRoot 'wintrash.ignore.json'
 function Get-IgnoreList {
     if (-not (Test-Path -LiteralPath $script:ignoreFile)) { return @() }
     try { return @(Get-Content -LiteralPath $script:ignoreFile -Raw | ConvertFrom-Json) } catch { return @() }
@@ -1011,7 +1038,7 @@ function Add-ToIgnoreList {
 function Save-ScanHistoryAndDiff {
     # Save a snapshot of this scan + compare with the previous one (new / disappeared items)
     param([hashtable]$L)
-    $histDir = Join-Path $PSScriptRoot 'ScanHistory'
+    $histDir = Join-Path $script:DataRoot 'ScanHistory'
     if (-not (Test-Path -LiteralPath $histDir)) { New-Item -ItemType Directory -Path $histDir -Force | Out-Null }
     $currentIds = @($script:findings | ForEach-Object { Get-FindingId $_ })
 
@@ -1844,7 +1871,7 @@ function Remove-SelectedFindings {
     param([object[]]$Selected, [hashtable]$L)
     Add-Type -AssemblyName Microsoft.VisualBasic
     $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-    $backupDir = Join-Path $PSScriptRoot "WinTrashBackups\$timestamp"
+    $backupDir = Join-Path $script:DataRoot "WinTrashBackups\$timestamp"
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
     $log = [System.Collections.Generic.List[string]]::new()
     $ok = 0; $fail = 0
@@ -2181,7 +2208,7 @@ function Invoke-FlowScan {
     Invoke-AllScans -L $L
     Show-ScanSummary -L $L
     Save-ScanHistoryAndDiff -L $L
-    $html = Join-Path $PSScriptRoot ("wintrash-report_{0}.html" -f (Get-Date -Format 'yyyyMMdd_HHmm'))
+    $html = Join-Path $script:DataRoot ("wintrash-report_{0}.html" -f (Get-Date -Format 'yyyyMMdd_HHmm'))
     Export-HtmlReport -Path $html
     Write-Host ''
     Write-Host ($L.ReportSaved -f $html) -ForegroundColor Green
@@ -2242,7 +2269,7 @@ function Invoke-FlowClean {
             $elevAnswer = Read-Host ($L.ElevateAsk -f $adminNeeded.Count, $selected.Count)
             if ($elevAnswer -match '^[yY]') {
                 # Save the selected IDs -> the admin window re-scans and cleans exactly these items
-                $pendingDir = Join-Path $PSScriptRoot 'WinTrashBackups'
+                $pendingDir = Join-Path $script:DataRoot 'WinTrashBackups'
                 if (-not (Test-Path -LiteralPath $pendingDir)) { New-Item -ItemType Directory -Path $pendingDir -Force | Out-Null }
                 $ids = @($selected | ForEach-Object { Get-FindingId $_ })
                 ConvertTo-Json $ids | Set-Content -LiteralPath (Join-Path $pendingDir 'pending-clean.json') -Encoding UTF8
@@ -2263,7 +2290,7 @@ function Invoke-FlowClean {
 function Invoke-FlowCleanResume {
     # Runs in the Administrator window: read the saved IDs, re-scan, clean exactly those items
     param([hashtable]$L)
-    $pendingFile = Join-Path $PSScriptRoot 'WinTrashBackups\pending-clean.json'
+    $pendingFile = Join-Path $script:DataRoot 'WinTrashBackups\pending-clean.json'
     if (-not (Test-Path -LiteralPath $pendingFile)) { Write-Host $L.ResumeNothing -ForegroundColor Yellow; return }
     $ids = @(Get-Content -LiteralPath $pendingFile -Raw | ConvertFrom-Json)
     Remove-Item -LiteralPath $pendingFile -Force -ErrorAction SilentlyContinue
@@ -2280,7 +2307,7 @@ function Invoke-FlowCleanResume {
 
 function Invoke-FlowRestore {
     param([hashtable]$L)
-    $backupRoot = Join-Path $PSScriptRoot 'WinTrashBackups'
+    $backupRoot = Join-Path $script:DataRoot 'WinTrashBackups'
     $backups = @(Get-ChildItem -LiteralPath $backupRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
     if ($backups.Count -eq 0) { Write-Host $L.RestoreNothing -ForegroundColor Yellow; return }
 
@@ -2491,7 +2518,7 @@ function Invoke-FlowDownloads {
     }
     if ($undoLog.Count -gt 0) {
         $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-        $logDir = Join-Path $PSScriptRoot 'DownloadsLogs'
+        $logDir = Join-Path $script:DataRoot 'DownloadsLogs'
         if (-not (Test-Path -LiteralPath $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
         $undoPath = Join-Path $logDir "Undo-Downloads_$timestamp.ps1"
         $undoLines = [System.Collections.Generic.List[string]]::new()
@@ -2623,6 +2650,9 @@ function Test-UpdatePrompt {
     # Called after language selection: new version available -> show "what's new" then ask update/skip.
     # Returns $true if updated (restart needed).
     param([hashtable]$L)
+    # Packaged (Microsoft Store) builds must not self-update: the install folder is
+    # read-only and Store policy requires updates to ship through the Store
+    if ($script:IsPackaged) { return $false }
     Write-C $L.UpdateCheck -Color DarkGray
     Write-Host ''
     $remote = Get-RemoteVersion

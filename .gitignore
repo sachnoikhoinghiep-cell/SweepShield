@@ -12,3 +12,7 @@ wintrash.ignore.json
 .playwright-mcp/
 *.bak
 dist/
+store/layout/
+store/out/
+store/*.exe
+store/Assets/

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.0] - 2026-07-14
+
+### Added
+- **Microsoft Store packaging kit** (`store/`): MSIX manifest template (full-trust, neutral arch), a tiny C# console launcher as the required exe entry point, and `build-msix.ps1` that compiles the launcher with the built-in csc.exe, generates placeholder logos, stages the layout, packs with makeappx and optionally signs for sideload testing. `STORE.md` documents the full submission checklist and policy risks; `PRIVACY.md` provides the privacy policy the listing requires.
+- **Writable data root**: backups, scan history, HTML reports, Downloads logs and the ignore list now live in the script folder only when it is writable (portable mode, unchanged behavior); otherwise they fall back to `%LOCALAPPDATA%\WinTrash` (Program Files, MSIX WindowsApps). Override with the `WINTRASH_DATA_DIR` environment variable.
+
+### Changed
+- **Packaged (Store) mode** — detected via the WindowsApps install path or `WINTRASH_PACKAGED=1` — skips the self-update check entirely: updates ship through the Store and the build makes no network calls at all.
+
 ## [1.3.1] - 2026-07-12
 
 ### Fixed
