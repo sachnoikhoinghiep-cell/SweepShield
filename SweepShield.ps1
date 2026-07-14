@@ -51,7 +51,7 @@ $ProgressPreference = 'SilentlyContinue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
 $script:SweepShieldVersion = [version]'1.4.0'
-$script:UpdateRawBase = 'https://raw.githubusercontent.com/hasoftware/WinTrash/main'
+$script:UpdateRawBase = 'https://raw.githubusercontent.com/sachnoikhoinghiep-cell/SweepShield/main'
 
 # Packaged mode (MSIX / Microsoft Store): the install folder under WindowsApps is
 # read-only and Store policy requires updates to ship through the Store itself
