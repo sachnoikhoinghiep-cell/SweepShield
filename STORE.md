@@ -37,19 +37,19 @@ The codebase is now **technically Store-ready**: the two hard blockers (read-onl
 - **Elevation**: the app requests UAC elevation on demand (relaunch). That's allowed for full-trust desktop apps; do not set `allowElevation` tricks or auto-elevate at startup.
 - **10.8.4 self-update ban**: already handled — the packaged build never contacts the network.
 
-## Pricing — DECIDED: US$2.99 with a free 1-day trial
+## Pricing — DECIDED: flat US$2.99, all markets, no trial
 
 Partner Center → Pricing and availability:
 
-- **Base price:** the **$2.99 USD** tier (Microsoft auto-converts per market; you receive ~$2.54 per sale after the 15% non-game cut). Optionally override the Vietnam market to ~49,000₫.
-- **Free trial:** set to **1 day**. The listing then shows a "Free trial" button next to the price.
+- **Base price:** the **$2.99 USD** tier. Leave all per-market overrides untouched — Microsoft auto-converts to local currency for every market (you receive ~$2.54 per sale after the 15% non-game cut).
+- **Free trial:** **No free trial.**
+- **Markets:** keep the default "all markets" selection.
 
-**Enforcement caveat (full-trust desktop apps):** for packaged Win32 apps the OS does not hard-block launches after a time-limited trial expires the way it does for pure UWP apps. In practice the trial gates the *acquisition flow* (Store shows trial vs. buy), but a user who installed the trial may keep launching the exe. If strict enforcement matters, the launcher must query the license via `Windows.Services.Store` (`StoreContext.GetAppLicenseAsync` → `IsActive`/`IsTrial` + expiry) and exit with a "trial expired — buy on the Store" message. That needs WinRT interop from the launcher; ship v1 without it and add it if trial abuse actually shows up in the numbers.
+Considered and rejected: a 1-day trial (time-limited trials are not hard-enforced for full-trust desktop apps without a WinRT license check in the launcher — not worth the complexity at this price point) and a discounted Vietnam override (the free GitHub build already serves price-sensitive users).
 
 Background notes:
 
 - **The code is MIT-licensed and public.** Anyone can legally take it, rebrand it, and publish it free. The paid Store listing sells *convenience + Store updates + support* — a common, honest model. Keep the GitHub copy free; re-licensing future versions is possible (you hold the copyright; outside contributions would need consent/CLA).
-- The 1-day trial also softens the trust barrier: a cleaner asking for full trust is easier to try than to buy blind.
 
 ## Store listing copy (Description, 4 languages)
 
