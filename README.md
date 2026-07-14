@@ -1,4 +1,4 @@
-# WinTrash Toolkit
+# <img src="assets/icon.png" width="28" alt=""> WinTrash Toolkit
 
 **A single PowerShell file** that scans 18 kinds of application leftovers on Windows and cleans them **selectively, item by item** — you tick each entry with the Space key; nothing is ever deleted in bulk automatically.
 

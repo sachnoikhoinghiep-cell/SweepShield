@@ -40,7 +40,10 @@ $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path $csc)) { $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe' }
 if (-not (Test-Path $csc)) { throw 'csc.exe not found - .NET Framework 4.x is required.' }
 $launcher = Join-Path $storeDir 'WinTrashLauncher.exe'
-& $csc /nologo /target:exe /platform:anycpu /out:$launcher (Join-Path $storeDir 'WinTrashLauncher.cs')
+$icoArg = @()
+$ico = Join-Path $storeDir 'icon.ico'
+if (Test-Path $ico) { $icoArg = @("/win32icon:$ico") }
+& $csc /nologo /target:exe /platform:anycpu /out:$launcher @icoArg (Join-Path $storeDir 'WinTrashLauncher.cs')
 Write-Host "√ Launcher compiled: $launcher" -ForegroundColor Green
 
 # ---- 2. Generate placeholder assets if missing --------------------------------

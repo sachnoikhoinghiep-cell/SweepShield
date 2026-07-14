@@ -25,7 +25,7 @@ The codebase is now **technically Store-ready**: the two hard blockers (read-onl
    .\store\build-msix.ps1 -IdentityName '12345You.WinTrash' -Publisher 'CN=xxxx' -PublisherDisplay 'Your Name'
    ```
    Requires the Windows 10/11 SDK for `makeappx.exe` (`winget install Microsoft.WindowsSDK.10.0.26100`).
-4. **Replace the placeholder icons** in `store/Assets/` (the build script generates ugly "WT" tiles just to make the package valid). You need at minimum 44×44, 150×150, 50×50 PNGs; prepare 1080p screenshots for the listing too.
+4. **Icons are done** — `store/Assets/` holds the real app icon (44×44, 150×150, 50×50, generated from `assets/icon.png`), and the launcher exe embeds `store/icon.ico`. Still needed from you: **1080p screenshots** for the listing.
 5. **Test the package locally**: sign with a self-signed cert (`-PfxPath`), install the cert into Trusted People, double-click the `.msix`, and verify: scan works, cleanup writes to `%LOCALAPPDATA%\WinTrash`, elevation (UAC re-launch) works, no update prompt appears.
 6. **Submission**: upload the `.msix`, fill in the listing (all 4 languages helps ranking), set the **age rating** questionnaire (utility → typically 3+), link the **privacy policy URL**, declare the `runFullTrust` capability justification ("reads/repairs registry, services, scheduled tasks and firewall rules — impossible inside the AppContainer sandbox").
 7. **Pricing** — decide free vs paid (see below).
@@ -50,6 +50,8 @@ store/
   AppxManifest.xml      MSIX manifest template (placeholders stamped by the build script)
   WinTrashLauncher.cs   console launcher (exe entry point) source
   build-msix.ps1        end-to-end package build: compile, assets, stage, pack, sign
-  Assets/               logo PNGs (generated placeholders - REPLACE before submitting)
+  Assets/               app logo PNGs (rendered from assets/icon.png)
+  icon.ico              multi-size icon embedded into the launcher exe
+assets/icon.png         master app icon (source for all of the above)
 PRIVACY.md              privacy policy for the Store listing
 ```
