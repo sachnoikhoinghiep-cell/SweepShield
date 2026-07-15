@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SweepShield Privacy Policy</title>
+<style>
+  :root {
+    --bg: #fbfcfe;
+    --ink: #1b2532;
+    --muted: #5b6a7a;
+    --accent: #2b7cd3;
+    --panel: #eef4fb;
+    --line: #dbe4ee;
+    --good: #1e7d43;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10161d;
+      --ink: #e5ecf4;
+      --muted: #97a6b6;
+      --accent: #7cc0f5;
+      --panel: #17222d;
+      --line: #26323f;
+      --good: #5fc98a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10161d;
+    --ink: #e5ecf4;
+    --muted: #97a6b6;
+    --accent: #7cc0f5;
+    --panel: #17222d;
+    --line: #26323f;
+    --good: #5fc98a;
+  }
+  :root[data-theme="light"] {
+    --bg: #fbfcfe;
+    --ink: #1b2532;
+    --muted: #5b6a7a;
+    --accent: #2b7cd3;
+    --panel: #eef4fb;
+    --line: #dbe4ee;
+    --good: #1e7d43;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    line-height: 1.65;
+    margin: 0;
+  }
+  .wrap {
+    max-width: 68ch;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2rem;
+  }
+  header img {
+    width: 56px;
+    height: 56px;
+    flex: none;
+  }
+  .app-name {
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-weight: 650;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+  .doc-title {
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 1.9rem;
+    line-height: 1.15;
+    text-wrap: balance;
+    margin: 0.1rem 0 0.3rem;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-family: system-ui, "Segoe UI", sans-serif;
+    margin: 0;
+  }
+
+  .summary {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    margin: 0 0 2.25rem;
+  }
+  .summary .label {
+    display: block;
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+  .summary p {
+    margin: 0;
+    font-size: 1.02rem;
+  }
+
+  h2 {
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-weight: 650;
+    font-size: 1.22rem;
+    text-wrap: balance;
+    margin: 2.4rem 0 0.6rem;
+  }
+  h2::before {
+    content: "";
+    display: block;
+    width: 2.2rem;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-bottom: 0.65rem;
+  }
+  p, li { font-size: 1rem; }
+  ul { padding-left: 1.2rem; margin: 0.4rem 0 1rem; }
+  li { margin-bottom: 0.45rem; }
+  li::marker { color: var(--accent); }
+  strong { font-weight: 650; }
+  .yes-none { color: var(--good); font-weight: 650; }
+  code {
+    font-family: Consolas, "Cascadia Mono", monospace;
+    font-size: 0.88em;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+  }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+    margin: 0.75rem 0 1rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 650;
+  }
+  .table-scroll { overflow-x: auto; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-family: system-ui, "Segoe UI", sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <img alt="SweepShield app icon" src="data:image/png;base64,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">
+    <div>
+      <p class="app-name">SweepShield <span style="color: var(--muted); font-weight: 400;">by Tom AI</span></p>
+      <h1 class="doc-title">Privacy Policy</h1>
+      <p class="meta">Last updated: July 14, 2026</p>
+    </div>
+  </header>
+
+  <div class="summary">
+    <span class="label">Plain-language summary</span>
+    <p>SweepShield runs entirely on your computer. It collects <strong>nothing</strong>, sends <strong>nothing</strong>, and has no accounts, ads, or analytics. Everything it finds and everything it backs up stays on your own disk.</p>
+  </div>
+
+  <p>SweepShield is a local Windows utility that scans for application leftovers (dead registry entries, orphaned folders, broken shortcuts, and similar) and lets you remove them selectively, with a backup taken before every deletion. This policy describes what data the app touches and what — if anything — leaves your machine.</p>
+
+  <h2>What the app does not do</h2>
+  <ul>
+    <li>It does <span class="yes-none">not</span> collect, store, or transmit any personal data.</li>
+    <li>It has <span class="yes-none">no</span> telemetry, analytics, advertising identifiers, or user accounts.</li>
+    <li>It does <span class="yes-none">not</span> upload scan results, reports, backups, or logs anywhere. They are written only to your own disk — under <code>%LOCALAPPDATA%\SweepShield</code> in the Microsoft Store build, or next to the script in the portable build.</li>
+  </ul>
+
+  <h2>What the app reads on your device</h2>
+  <p>To find application leftovers, SweepShield reads the following, locally and read-only during scans:</p>
+  <ul>
+    <li>the Windows registry (uninstall entries, startup keys, app registrations),</li>
+    <li>the file system (AppData, ProgramData, Downloads, Temp folders),</li>
+    <li>installed services and scheduled tasks,</li>
+    <li>firewall rules, Windows Defender exclusion lists, and certificate stores.</li>
+  </ul>
+  <p>Nothing it reads is transmitted off the device. Scan results are shown to you and optionally saved as a local HTML report.</p>
+
+  <h2>Network access</h2>
+  <div class="table-scroll">
+    <table>
+      <tr><th>Edition</th><th>Network behavior</th></tr>
+      <tr>
+        <td><strong>Microsoft Store build</strong></td>
+        <td>Makes <strong>no network connections at all</strong>. Updates are delivered by the Microsoft Store.</td>
+      </tr>
+      <tr>
+        <td><strong>Portable (GitHub) build</strong></td>
+        <td>The only network activity is an optional update check against the project's GitHub repository: it downloads the version and changelog files and, only if you accept, the new script. This is a plain file download — no data about you or your system is sent.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>Deletions and backups</h2>
+  <p>Nothing is deleted without your explicit per-item selection and a final confirmation. Before every deletion the app creates a local backup — registry <code>.reg</code> exports, scheduled-task <code>.xml</code> exports, the Recycle Bin, or the app's backup folder — and provides a built-in restore function. Backups remain on your machine, under your control, and can be deleted by you at any time.</p>
+
+  <h2>Children's privacy</h2>
+  <p>SweepShield does not collect data from anyone, including children.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the updated version will be published at this address and in the project repository, with the "Last updated" date revised. Since the app collects nothing, changes are expected to be rare and editorial.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:hoanganhuet@hotmail.com">hoanganhuet@hotmail.com</a>, or open an issue on the project's GitHub repository.</p>
+
+  <footer>
+    SweepShield — Windows leftovers scanner &amp; selective cleaner · Published by Tom AI · MIT-licensed source code
+  </footer>
+</div>
+</body>
+</html>
