@@ -30,6 +30,17 @@ The codebase is now **technically Store-ready**: the two hard blockers (read-onl
 6. **Submission**: upload the `.msix`, fill in the listing (all 4 languages helps ranking), set the **age rating** questionnaire (utility → typically 3+), link the **privacy policy URL**, declare the `runFullTrust` capability justification ("reads/repairs registry, services, scheduled tasks and firewall rules — impossible inside the AppContainer sandbox").
 7. **Pricing** — decide free vs paid (see below).
 
+## Certification round 1 (2026-07-15) — FAILED, both issues fixed
+
+Report: Product ID 9NHFVWDF71BL, status "Attention needed".
+
+| Policy | What the reviewer flagged | Fix (done) |
+|---|---|---|
+| **10.1.1.3 Inaccurate Representation** | Screenshots showed "non-Windows UI or devices" — the terminal mock used macOS-style red/yellow/green traffic-light dots | Title bar redrawn Windows-style (app icon + title on the left, minimize/maximize/close caption buttons on the right); both PNGs re-rendered. **Re-upload both screenshots in every language listing.** |
+| **10.5.1 Privacy Policy** | The submitted URL (`https://github.com/sachnoikhoinghiep-cell/SweepShield` — repo root) doesn't display a privacy policy | Standalone `privacy.html` now served via GitHub Pages. **Paste exactly:** `https://sachnoikhoinghiep-cell.github.io/SweepShield/privacy.html` |
+
+When resubmitting: replace the screenshots in **all 4 language listings** (the flag said "In the following languages listings: All") and update the privacy URL in Properties → Support info.
+
 ## Policy risk (read before submitting)
 
 - **10.1 (functionality claims)**: Microsoft actively removes "PC cleaner" apps that exaggerate problems or pressure users into paying to "fix" issues. SweepShield is fine as long as the listing stays factual: it *reports* leftovers and lets the user decide — do not use fear-based marketing ("your PC is at risk!").
